@@ -1,0 +1,238 @@
+import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { Plus, ClipboardList, CheckCircle, XCircle, Loader2, X } from "lucide-react";
+import { format, parseISO } from "date-fns";
+
+const TIPOS = [
+  { value: "parches_adulto", label: "Parches Adulto" },
+  { value: "parches_nino", label: "Parches Niño" },
+  { value: "bateria", label: "Batería" },
+  { value: "mantenimiento", label: "Mantenimiento" },
+];
+
+const ESTADOS_COLOR = {
+  pendiente: "bg-amber-50 text-amber-700 border-amber-200",
+  aprobada: "bg-green-50 text-green-700 border-green-200",
+  rechazada: "bg-red-50 text-red-700 border-red-200",
+  completada: "bg-blue-50 text-blue-700 border-blue-200",
+};
+
+export default function Solicitudes() {
+  const [user, setUser] = useState(null);
+  const [solicitudes, setSolicitudes] = useState([]);
+  const [equipos, setEquipos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ equipo_id: "", tipo_solicitud: "parches_adulto", cantidad: 1, descripcion: "" });
+  const [saving, setSaving] = useState(false);
+  const [selectedSol, setSelectedSol] = useState(null);
+  const [respuesta, setRespuesta] = useState("");
+
+  const load = async () => {
+    const u = await base44.auth.me();
+    setUser(u);
+    const allEquipos = await base44.entities.EquipoDEA.list();
+    const equiposFiltrados = u?.role === "admin"
+      ? allEquipos
+      : allEquipos.filter(e => e.usuarios_asignados?.includes(u.email));
+    setEquipos(equiposFiltrados);
+    const allSol = await base44.entities.SolicitudStock.list();
+    const solFiltradas = u?.role === "admin"
+      ? allSol
+      : allSol.filter(s => s.solicitante_email === u.email);
+    setSolicitudes(solFiltradas.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const isAdmin = user?.role === "admin";
+
+  const handleCreate = async () => {
+    setSaving(true);
+    await base44.entities.SolicitudStock.create({
+      ...form,
+      solicitante_email: user.email,
+      fecha_solicitud: new Date().toISOString().split("T")[0],
+      estado: "pendiente"
+    });
+    setSaving(false);
+    setShowForm(false);
+    setForm({ equipo_id: "", tipo_solicitud: "parches_adulto", cantidad: 1, descripcion: "" });
+    load();
+  };
+
+  const handleUpdateEstado = async (sol, estado) => {
+    await base44.entities.SolicitudStock.update(sol.id, { estado, respuesta_admin: respuesta });
+    setSelectedSol(null);
+    setRespuesta("");
+    load();
+  };
+
+  const inputCls = "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-slate-50";
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  return (
+    <div className="p-6 lg:p-10 max-w-4xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Solicitudes</h1>
+          <p className="text-slate-500 mt-1">Gestión de requerimientos de stock y mantenimiento</p>
+        </div>
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
+          style={{ background: "#e63946" }}
+        >
+          <Plus className="w-4 h-4" /> Nueva Solicitud
+        </button>
+      </div>
+
+      {/* Lista */}
+      <div className="space-y-3">
+        {solicitudes.map(sol => {
+          const equipo = equipos.find(e => e.id === sol.equipo_id);
+          const tipo = TIPOS.find(t => t.value === sol.tipo_solicitud);
+          return (
+            <div
+              key={sol.id}
+              onClick={() => isAdmin && setSelectedSol(sol)}
+              className={`bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-start justify-between ${isAdmin ? "cursor-pointer hover:shadow-md transition-shadow" : ""}`}
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
+                  <ClipboardList className="w-5 h-5 text-slate-500" />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900 text-sm">{tipo?.label || sol.tipo_solicitud}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{equipo ? `${equipo.marca} ${equipo.modelo} — ${equipo.establecimiento}` : "Equipo no encontrado"}</p>
+                  <p className="text-xs text-slate-400 mt-1">{sol.descripcion}</p>
+                  {sol.cantidad > 1 && <p className="text-xs text-slate-400">Cantidad: {sol.cantidad}</p>}
+                  <p className="text-xs text-slate-300 mt-1">{sol.solicitante_email}</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-full border capitalize ${ESTADOS_COLOR[sol.estado]}`}>
+                  {sol.estado}
+                </span>
+                {sol.created_date && (
+                  <span className="text-xs text-slate-300">{format(new Date(sol.created_date), "dd/MM/yy")}</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        {solicitudes.length === 0 && (
+          <div className="text-center py-16 text-slate-400">
+            <ClipboardList className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <p>No hay solicitudes registradas</p>
+          </div>
+        )}
+      </div>
+
+      {/* Modal Nueva Solicitud */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md">
+            <div className="px-7 pt-7 pb-4 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">Nueva Solicitud</h2>
+              <button onClick={() => setShowForm(false)}><X className="w-5 h-5 text-slate-400" /></button>
+            </div>
+            <div className="px-7 py-6 space-y-4">
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Equipo *</label>
+                <select className={inputCls} value={form.equipo_id} onChange={e => setForm(f => ({ ...f, equipo_id: e.target.value }))}>
+                  <option value="">Seleccionar equipo</option>
+                  {equipos.map(e => (
+                    <option key={e.id} value={e.id}>{e.marca} {e.modelo} — {e.establecimiento}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Tipo de Solicitud *</label>
+                <select className={inputCls} value={form.tipo_solicitud} onChange={e => setForm(f => ({ ...f, tipo_solicitud: e.target.value }))}>
+                  {TIPOS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Cantidad</label>
+                <input type="number" className={inputCls} min={1} value={form.cantidad} onChange={e => setForm(f => ({ ...f, cantidad: parseInt(e.target.value) }))} />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Descripción / Motivo *</label>
+                <textarea className={inputCls} rows={3} value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))} placeholder="Describe el motivo de la solicitud..." />
+              </div>
+            </div>
+            <div className="px-7 pb-7 flex gap-3 justify-end">
+              <button onClick={() => setShowForm(false)} className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
+              <button
+                onClick={handleCreate}
+                disabled={saving || !form.equipo_id || !form.descripcion}
+                className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center gap-2 disabled:opacity-60"
+                style={{ background: "#e63946" }}
+              >
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />} Enviar Solicitud
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Admin respuesta */}
+      {selectedSol && isAdmin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md">
+            <div className="px-7 pt-7 pb-4 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">Gestionar Solicitud</h2>
+              <button onClick={() => setSelectedSol(null)}><X className="w-5 h-5 text-slate-400" /></button>
+            </div>
+            <div className="px-7 py-6 space-y-4">
+              <div className="bg-slate-50 rounded-xl p-4">
+                <p className="text-sm font-semibold text-slate-800">{TIPOS.find(t => t.value === selectedSol.tipo_solicitud)?.label}</p>
+                <p className="text-xs text-slate-500 mt-1">{selectedSol.descripcion}</p>
+                <p className="text-xs text-slate-400 mt-2">Solicitante: {selectedSol.solicitante_email}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Respuesta / Comentario</label>
+                <textarea
+                  className={inputCls}
+                  rows={3}
+                  value={respuesta}
+                  onChange={e => setRespuesta(e.target.value)}
+                  placeholder="Opcional: agregar comentario..."
+                />
+              </div>
+            </div>
+            <div className="px-7 pb-7 flex gap-3">
+              <button
+                onClick={() => handleUpdateEstado(selectedSol, "rechazada")}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium border border-red-200 text-red-600 hover:bg-red-50"
+              >
+                <XCircle className="w-4 h-4" /> Rechazar
+              </button>
+              <button
+                onClick={() => handleUpdateEstado(selectedSol, "aprobada")}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white"
+                style={{ background: "#10b981" }}
+              >
+                <CheckCircle className="w-4 h-4" /> Aprobar
+              </button>
+              <button
+                onClick={() => handleUpdateEstado(selectedSol, "completada")}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white"
+                style={{ background: "#6366f1" }}
+              >
+                Completar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
