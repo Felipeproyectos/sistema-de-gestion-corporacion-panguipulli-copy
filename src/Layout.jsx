@@ -111,10 +111,13 @@ export default function Layout({ children, currentPageName }) {
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-4" style={{ background: "#1a2e4a" }}>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "#e63946" }}>
-            <Heart className="w-4 h-4 text-white" />
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden" style={{ background: "#e63946" }}>
+            {appConfig?.logo_url
+              ? <img src={appConfig.logo_url} alt="logo" className="w-full h-full object-cover" />
+              : <Heart className="w-4 h-4 text-white" />
+            }
           </div>
-          <span className="text-white font-semibold text-sm">DEA Manager</span>
+          <span className="text-white font-semibold text-sm">{appConfig?.nombre_app || "DEA Manager"}</span>
         </div>
         <button onClick={() => setMenuOpen(!menuOpen)} className="text-white">
           {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
