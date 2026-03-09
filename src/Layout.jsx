@@ -59,12 +59,15 @@ export default function Layout({ children, currentPageName }) {
       <aside className="hidden lg:flex flex-col w-64 min-h-screen" style={{ background: "#1a2e4a" }}>
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-7 border-b border-white/10">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "#e63946" }}>
-            <Heart className="w-5 h-5 text-white" />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0" style={{ background: "#e63946" }}>
+            {appConfig?.logo_url
+              ? <img src={appConfig.logo_url} alt="logo" className="w-full h-full object-cover" />
+              : <Heart className="w-5 h-5 text-white" />
+            }
           </div>
           <div>
-            <p className="text-white font-semibold text-sm leading-none">DEA Manager</p>
-            <p className="text-white/40 text-xs mt-0.5">Sistema de gestión</p>
+            <p className="text-white font-semibold text-sm leading-none">{appConfig?.nombre_app || "DEA Manager"}</p>
+            <p className="text-white/40 text-xs mt-0.5">{appConfig?.subtitulo || "Sistema de gestión"}</p>
           </div>
         </div>
 
