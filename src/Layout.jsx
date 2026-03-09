@@ -11,16 +11,21 @@ import {
   Menu,
   X,
   LogOut,
-  Bell
+  Bell,
+  Settings
 } from "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [appConfig, setAppConfig] = useState(null);
   const location = useLocation();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
+    base44.entities.AppConfig.list().then(list => {
+      if (list.length > 0) setAppConfig(list[0]);
+    }).catch(() => {});
   }, []);
 
   const isAdmin = user?.role === "admin";
