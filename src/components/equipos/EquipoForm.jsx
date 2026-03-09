@@ -11,6 +11,7 @@ export default function EquipoForm({ equipo, onClose, onSaved }) {
     orden_compra_url: "", notas: "", usuarios_asignados: []
   });
   const [uploading, setUploading] = useState(false);
+  const [uploadingFoto, setUploadingFoto] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -22,6 +23,15 @@ export default function EquipoForm({ equipo, onClose, onSaved }) {
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     set("orden_compra_url", file_url);
     setUploading(false);
+  };
+
+  const handleFoto = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingFoto(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    set("foto_url", file_url);
+    setUploadingFoto(false);
   };
 
   const handleSave = async () => {
