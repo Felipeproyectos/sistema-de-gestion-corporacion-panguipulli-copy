@@ -148,14 +148,39 @@ export default function Solicitudes() {
             </div>
             <div className="px-7 py-6 space-y-4">
               <div>
-                <label className="text-xs font-medium text-slate-600 mb-1 block">Equipo *</label>
-                <select className={inputCls} value={form.equipo_id} onChange={e => setForm(f => ({ ...f, equipo_id: e.target.value }))}>
-                  <option value="">Seleccionar equipo</option>
-                  {equipos.map(e => (
-                    <option key={e.id} value={e.id}>{e.marca} {e.modelo} — {e.establecimiento}</option>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Establecimiento *</label>
+                <select
+                  className={inputCls}
+                  value={form.establecimiento}
+                  onChange={e => setForm(f => ({ ...f, establecimiento: e.target.value, lugar: "", equipo_id: "" }))}
+                >
+                  <option value="">Seleccionar establecimiento</option>
+                  {[...new Set(equipos.map(e => e.establecimiento).filter(Boolean))].map(est => (
+                    <option key={est} value={est}>{est}</option>
                   ))}
                 </select>
               </div>
+              {form.establecimiento && (
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Lugar *</label>
+                  <select
+                    className={inputCls}
+                    value={form.lugar}
+                    onChange={e => {
+                      const lugar = e.target.value;
+                      const equipo = equipos.find(eq => eq.establecimiento === form.establecimiento && eq.lugar_destinado === lugar);
+                      setForm(f => ({ ...f, lugar, equipo_id: equipo?.id || "" }));
+                    }}
+                  >
+                    <option value="">Seleccionar lugar</option>
+                    {equipos
+                      .filter(e => e.establecimiento === form.establecimiento)
+                      .map(e => (
+                        <option key={e.id} value={e.lugar_destinado}>{e.lugar_destinado} — {e.marca} {e.modelo}</option>
+                      ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="text-xs font-medium text-slate-600 mb-1 block">Tipo de Solicitud *</label>
                 <select className={inputCls} value={form.tipo_solicitud} onChange={e => setForm(f => ({ ...f, tipo_solicitud: e.target.value }))}>
