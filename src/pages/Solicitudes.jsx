@@ -61,7 +61,7 @@ export default function Solicitudes() {
     });
     setSaving(false);
     setShowForm(false);
-    setForm({ equipo_id: "", tipo_solicitud: "parches_adulto", cantidad: 1, descripcion: "" });
+    setForm({ equipo_id: "", establecimiento: "", lugar: "", tipo_solicitud: "parches_adulto", cantidad: 1, descripcion: "" });
     load();
   };
 
