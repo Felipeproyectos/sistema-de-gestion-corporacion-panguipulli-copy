@@ -23,7 +23,7 @@ export default function Solicitudes() {
   const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ equipo_id: "", tipo_solicitud: "parches_adulto", cantidad: 1, descripcion: "" });
+  const [form, setForm] = useState({ equipo_id: "", establecimiento: "", lugar: "", tipo_solicitud: "parches_adulto", cantidad: 1, descripcion: "" });
   const [saving, setSaving] = useState(false);
   const [selectedSol, setSelectedSol] = useState(null);
   const [respuesta, setRespuesta] = useState("");
