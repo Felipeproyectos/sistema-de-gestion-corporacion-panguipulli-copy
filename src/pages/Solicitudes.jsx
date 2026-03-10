@@ -6,8 +6,21 @@ import { format, parseISO } from "date-fns";
 const TIPOS = [
   { value: "parches_adulto", label: "Parches Adulto" },
   { value: "parches_nino", label: "Parches Niño" },
+  { value: "parches_mixto", label: "Parches Mixto (Adulto/Niño)" },
   { value: "bateria", label: "Batería" },
   { value: "mantenimiento", label: "Mantenimiento" },
+];
+
+const TIPOS_FORM = [
+  { value: "parches", label: "Parches" },
+  { value: "bateria", label: "Batería" },
+  { value: "mantenimiento", label: "Mantenimiento" },
+];
+
+const PARCHE_TIPOS = [
+  { value: "parches_adulto", label: "Adulto" },
+  { value: "parches_nino", label: "Niño" },
+  { value: "parches_mixto", label: "Mixto (Adulto/Niño)" },
 ];
 
 const ESTADOS_COLOR = {
