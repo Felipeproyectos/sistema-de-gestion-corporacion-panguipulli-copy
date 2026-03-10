@@ -29,19 +29,22 @@ export default function Solicitudes() {
   const [respuesta, setRespuesta] = useState("");
 
   const load = async () => {
-    const u = await base44.auth.me().catch(() => null);
-    setUser(u);
-    const allEquipos = await base44.entities.EquipoDEA.list();
-    const equiposFiltrados = u?.role === "admin"
-      ? allEquipos
-      : allEquipos.filter(e => e.usuarios_asignados?.includes(u.email));
-    setEquipos(equiposFiltrados);
-    const allSol = await base44.entities.SolicitudStock.list();
-    const solFiltradas = u?.role === "admin"
-      ? allSol
-      : allSol.filter(s => s.solicitante_email === u.email);
-    setSolicitudes(solFiltradas.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
-    setLoading(false);
+    try {
+      const u = await base44.auth.me().catch(() => null);
+      setUser(u);
+      const allEquipos = await base44.entities.EquipoDEA.list().catch(() => []);
+      const equiposFiltrados = u?.role === "admin"
+        ? allEquipos
+        : allEquipos.filter(e => e.usuarios_asignados?.includes(u?.email));
+      setEquipos(equiposFiltrados);
+      const allSol = await base44.entities.SolicitudStock.list().catch(() => []);
+      const solFiltradas = u?.role === "admin"
+        ? allSol
+        : allSol.filter(s => s.solicitante_email === u?.email);
+      setSolicitudes(solFiltradas.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
