@@ -200,7 +200,7 @@ export default function Solicitudes() {
               <button onClick={() => setShowForm(false)} className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
               <button
                 onClick={handleCreate}
-                disabled={saving || !form.equipo_id || !form.descripcion}
+                disabled={saving || !form.equipo_id || !form.establecimiento || !form.lugar || !form.descripcion}
                 className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center gap-2 disabled:opacity-60"
                 style={{ background: "#e63946" }}
               >
