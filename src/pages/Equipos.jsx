@@ -3,10 +3,12 @@ import { base44 } from "@/api/base44Client";
 import { Plus, Search, Monitor, FileText } from "lucide-react";
 import EquipoForm from "@/components/equipos/EquipoForm";
 import EquipoDetalle from "@/components/equipos/EquipoDetalle";
+import InformePDF from "@/components/equipos/InformePDF";
 
 export default function Equipos() {
   const [user, setUser] = useState(null);
   const [equipos, setEquipos] = useState([]);
+  const [parches, setParches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -19,6 +21,8 @@ export default function Equipos() {
       setUser(u);
       const all = await base44.entities.EquipoDEA.list().catch(() => []);
       setEquipos(all);
+      const allParches = await base44.entities.Parche.list().catch(() => []);
+      setParches(allParches);
     } finally {
       setLoading(false);
     }
@@ -59,15 +63,18 @@ export default function Equipos() {
           <h1 className="text-3xl font-bold text-slate-900">Equipos DEA</h1>
           <p className="text-slate-500 mt-1">{filtered.length} equipo{filtered.length !== 1 ? "s" : ""}</p>
         </div>
-        {isAdmin && (
-          <button
-            onClick={() => { setEditEquipo(null); setShowForm(true); }}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90"
-            style={{ background: "#e63946" }}
-          >
-            <Plus className="w-4 h-4" /> Nuevo Equipo
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          <InformePDF equipos={filtered} parches={parches} />
+          {isAdmin && (
+            <button
+              onClick={() => { setEditEquipo(null); setShowForm(true); }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90"
+              style={{ background: "#e63946" }}
+            >
+              <Plus className="w-4 h-4" /> Nuevo Equipo
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Buscador */}
