@@ -67,7 +67,7 @@ export default function Solicitudes() {
 
   useEffect(() => { load(); }, []);
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = true; // Temporalmente todos tienen permisos de admin
 
   const handleCreate = async () => {
     setSaving(true);
