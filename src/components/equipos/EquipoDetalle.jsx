@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { X, FileText, Edit2, Users, Trash2 } from "lucide-react";
 import ParchesPanel from "./ParchesPanel";
+import HistorialMantenimiento from "./HistorialMantenimiento";
 
 export default function EquipoDetalle({ equipo, onClose, onEdit, onDelete, isAdmin: _ }) {
   const isAdmin = true; // Temporalmente todos tienen permisos de admin
@@ -127,6 +128,14 @@ export default function EquipoDetalle({ equipo, onClose, onEdit, onDelete, isAdm
               equipoId={equipo.id}
               parches={parches}
               onRefresh={loadParches}
+              isAdmin={isAdmin}
+            />
+          </div>
+
+          {/* Historial de Mantenimiento */}
+          <div className="border-t border-slate-100 pt-6">
+            <HistorialMantenimiento
+              equipoId={equipo.id}
               isAdmin={isAdmin}
             />
           </div>
