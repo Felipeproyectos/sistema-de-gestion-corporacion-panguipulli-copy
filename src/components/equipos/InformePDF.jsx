@@ -3,12 +3,17 @@ import { useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
+import { base44 } from "@/api/base44Client";
 
 export default function InformePDF({ equipos, parches }) {
   const [generando, setGenerando] = useState(false);
 
   const generarPDF = async () => {
     setGenerando(true);
+    
+    // Obtener configuración de la app
+    const appConfig = await base44.entities.AppConfig.list().catch(() => []);
+    const logo = appConfig[0]?.logo_url || null;
     
     // Crear contenedor temporal para el contenido del PDF
     const container = document.createElement('div');
@@ -36,7 +41,14 @@ export default function InformePDF({ equipos, parches }) {
       <div style="color: #1a2e4a;">
         <!-- Header -->
         <div style="border-bottom: 3px solid #e63946; padding-bottom: 20px; margin-bottom: 30px;">
-          <h1 style="margin: 0; font-size: 32px; font-weight: 700; color: #1a2e4a;">Informe de Equipos DEA</h1>
+          <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+            ${logo ? `<img src="${logo}" alt="Logo" style="width: 60px; height: 60px; object-fit: contain;" />` : ''}
+            <div>
+              <p style="margin: 0; font-size: 16px; font-weight: 600; color: #1a2e4a;">Corporación Municipal de Panguipulli</p>
+              <p style="margin: 4px 0 0 0; font-size: 14px; color: #64748b;">Área Salud</p>
+            </div>
+          </div>
+          <h1 style="margin: 16px 0 0 0; font-size: 32px; font-weight: 700; color: #1a2e4a;">Informe de Equipos DEA</h1>
           <p style="margin: 8px 0 0 0; color: #64748b; font-size: 14px;">Generado el ${format(new Date(), "dd/MM/yyyy 'a las' HH:mm")}</p>
         </div>
 
