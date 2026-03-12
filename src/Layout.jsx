@@ -111,7 +111,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Mobile Header */}
       <div className="px-4 py-4 lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between" style={{ background: "#4ade80" }}>
         <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center overflow-hidden" style={appConfig?.logo_url ? { width: 44, height: 44 } : { width: 28, height: 28, background: "#e63946", borderRadius: 8 }}>
+          <div className="flex items-center justify-center overflow-hidden" style={appConfig?.logo_url ? { width: 56, height: 56 } : { width: 28, height: 28, background: "#e63946", borderRadius: 8 }}>
             {appConfig?.logo_url ?
             <img src={appConfig.logo_url} alt="logo" className="w-full h-full object-contain" /> :
             <Heart className="w-4 h-4 text-white" />
