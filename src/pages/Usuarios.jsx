@@ -15,7 +15,8 @@ export default function Usuarios() {
     const init = async () => {
       const u = await base44.auth.me();
       setUser(u);
-      if (u?.role !== "admin") return;
+      // Temporalmente todos tienen acceso
+      // if (u?.role !== "admin") return;
       const list = await base44.entities.User.list();
       setUsuarios(list);
       setLoading(false);
@@ -38,16 +39,17 @@ export default function Usuarios() {
     setInviting(false);
   };
 
-  if (user?.role !== "admin") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center text-slate-400">
-          <Shield className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p>Acceso restringido</p>
-        </div>
-      </div>
-    );
-  }
+  // Temporalmente todos tienen acceso de admin
+  // if (user?.role !== "admin") {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen">
+  //       <div className="text-center text-slate-400">
+  //         <Shield className="w-10 h-10 mx-auto mb-3 opacity-30" />
+  //         <p>Acceso restringido</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen">

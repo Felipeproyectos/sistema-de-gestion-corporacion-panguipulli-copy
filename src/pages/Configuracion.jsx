@@ -47,13 +47,14 @@ export default function Configuracion() {
     setTimeout(() => setSaved(false), 2500);
   };
 
-  if (user?.role !== "admin") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-slate-400">Acceso restringido a administradores</p>
-      </div>
-    );
-  }
+  // Temporalmente todos tienen acceso de admin
+  // if (user?.role !== "admin") {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen">
+  //       <p className="text-slate-400">Acceso restringido a administradores</p>
+  //     </div>
+  //   );
+  // }
 
   const inputCls = "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-slate-50";
   const labelCls = "block text-xs font-medium text-slate-600 mb-1";

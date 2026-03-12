@@ -51,15 +51,11 @@ export default function Solicitudes() {
       const u = await base44.auth.me().catch(() => null);
       setUser(u);
       const allEquipos = await base44.entities.EquipoDEA.list().catch(() => []);
-      const equiposFiltrados = u?.role === "admin"
-        ? allEquipos
-        : allEquipos.filter(e => e.usuarios_asignados?.includes(u?.email));
-      setEquipos(equiposFiltrados);
+      // Temporalmente todos ven todos los equipos
+      setEquipos(allEquipos);
       const allSol = await base44.entities.SolicitudStock.list().catch(() => []);
-      const solFiltradas = u?.role === "admin"
-        ? allSol
-        : allSol.filter(s => s.solicitante_email === u?.email);
-      setSolicitudes(solFiltradas.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+      // Temporalmente todos ven todas las solicitudes
+      setSolicitudes(allSol.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
     } finally {
       setLoading(false);
     }

@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { X, FileText, Edit2, Users, Trash2 } from "lucide-react";
 import ParchesPanel from "./ParchesPanel";
 
-export default function EquipoDetalle({ equipo, onClose, onEdit, onDelete, isAdmin }) {
+export default function EquipoDetalle({ equipo, onClose, onEdit, onDelete, isAdmin: _ }) {
+  const isAdmin = true; // Temporalmente todos tienen permisos de admin
   const [parches, setParches] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [newEmail, setNewEmail] = useState("");
