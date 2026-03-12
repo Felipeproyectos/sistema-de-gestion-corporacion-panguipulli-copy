@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Upload, Loader2, Save, Settings } from "lucide-react";
+import ManualAlertasAutomaticas from "@/components/ManualAlertasAutomaticas";
 
 export default function Configuracion() {
   const [user, setUser] = useState(null);
@@ -125,6 +126,11 @@ export default function Configuracion() {
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           {saved ? "¡Guardado!" : "Guardar cambios"}
         </button>
+      </div>
+
+      {/* Sistema de Alertas Automáticas */}
+      <div className="mt-6">
+        <ManualAlertasAutomaticas />
       </div>
     </div>
   );
