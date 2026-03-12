@@ -28,7 +28,7 @@ export default function Layout({ children, currentPageName }) {
     }).catch(() => {});
   }, []);
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = true; // Temporalmente todos tienen permisos de admin
 
   const navItems = [
     { label: "Dashboard", page: "Dashboard", icon: LayoutDashboard, adminOnly: false },

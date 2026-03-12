@@ -26,7 +26,7 @@ export default function Equipos() {
 
   useEffect(() => { load(); }, []);
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = true; // Temporalmente todos tienen permisos de admin
 
   const filtered = equipos.filter(e =>
     [e.marca, e.modelo, e.numero_serie, e.establecimiento, e.lugar_destinado]
