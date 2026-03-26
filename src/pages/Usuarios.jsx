@@ -12,16 +12,14 @@ export default function Usuarios() {
   const [inviteMsg, setInviteMsg] = useState("");
 
   useEffect(() => {
-    const init = async () => {
-      const u = await base44.auth.me();
+    Promise.all([
+      base44.auth.me(),
+      base44.entities.User.list()
+    ]).then(([u, list]) => {
       setUser(u);
-      // Temporalmente todos tienen acceso
-      // if (u?.role !== "admin") return;
-      const list = await base44.entities.User.list();
       setUsuarios(list);
       setLoading(false);
-    };
-    init();
+    });
   }, []);
 
   const handleChangeRole = async (userId, newRole) => {
