@@ -89,13 +89,13 @@ export default function Equipos() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 lg:px-10 -mt-10 pb-10">
-        <div className="flex items-center justify-between mb-0 hidden"><div></div></div>
 
+      <div className="bg-white rounded-3xl shadow-lg p-6">
       {/* Buscador */}
       <div className="relative mb-6">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input
-          className="w-full border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-white shadow-sm"
+          className="w-full border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-slate-50 shadow-sm"
           placeholder="Buscar por marca, modelo, serie, establecimiento..."
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -140,6 +140,7 @@ export default function Equipos() {
             <p>No se encontraron equipos</p>
           </div>
         )}
+      </div>
       </div>
 
       {/* Modal Form */}

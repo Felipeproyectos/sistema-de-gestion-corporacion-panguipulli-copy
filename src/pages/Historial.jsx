@@ -56,14 +56,14 @@ export default function Historial() {
       </div>
 
       <div className="max-w-5xl mx-auto px-6 lg:px-10 -mt-10 pb-10">
-      <div className="mb-0">
+      <div className="bg-white rounded-3xl shadow-lg p-6">
 
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
-            className="w-full border border-slate-200 rounded-xl pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white shadow-sm"
+            className="w-full border border-slate-200 rounded-xl pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-slate-50 shadow-sm"
             placeholder="Buscar por usuario o descripción..."
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -95,7 +95,7 @@ export default function Historial() {
           { label: "Ediciones", key: "editar", color: "#1565c0", bg: "#eff6ff" },
           { label: "Eliminaciones", key: "eliminar", color: "#dc2626", bg: "#fef2f2" },
         ].map(s => (
-          <div key={s.key} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm text-center">
+          <div key={s.key} className="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-center">
             <p className="text-2xl font-bold" style={{ color: s.color }}>
               {registros.filter(r => r.accion === s.key).length}
             </p>
@@ -117,7 +117,7 @@ export default function Historial() {
           const cfg = ACCION_CONFIG[r.accion] || ACCION_CONFIG.editar;
           const Icon = cfg.icon;
           return (
-            <div key={r.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 flex items-start gap-4 hover:shadow-md transition-shadow">
+            <div key={r.id} className="bg-slate-50 rounded-2xl border border-slate-100 px-5 py-4 flex items-start gap-4 hover:shadow-sm transition-shadow">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border ${cfg.color}`}>
                 <Icon className="w-4 h-4" />
               </div>

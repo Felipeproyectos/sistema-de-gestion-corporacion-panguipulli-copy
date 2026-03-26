@@ -20,22 +20,15 @@ export default function Centros() {
 
   const load = async () => {
     let data = await base44.entities.Centro.list().catch(() => []);
-
-    // Sembrar centros iniciales si no existen
     if (data.length === 0) {
-      await Promise.all(
-        CENTROS_INICIALES.map(c => base44.entities.Centro.create(c))
-      );
+      await Promise.all(CENTROS_INICIALES.map(c => base44.entities.Centro.create(c)));
       data = await base44.entities.Centro.list();
     }
-
-    // Asegurar que todos los centros principales existen
     for (const ci of CENTROS_INICIALES) {
       if (!data.find(d => d.nombre === ci.nombre)) {
         await base44.entities.Centro.create(ci);
       }
     }
-
     data = await base44.entities.Centro.list();
     setCentros(data.sort((a, b) => a.nombre.localeCompare(b.nombre)));
     setLoading(false);
@@ -63,7 +56,7 @@ export default function Centros() {
   const handleAddEmail = async (centro) => {
     const email = nuevoEmail[centro.id]?.trim().toLowerCase();
     if (!email || !email.includes('@')) return;
-    const emails_contacto = [...(centro.emails_contacto || [])]
+    const emails_contacto = [...(centro.emails_contacto || [])];
     if (emails_contacto.includes(email)) return;
     emails_contacto.push(email);
     setSaving(centro.id + '_email');
@@ -109,136 +102,127 @@ export default function Centros() {
       </div>
 
       <div className="max-w-3xl mx-auto px-6 lg:px-10 -mt-10 pb-10">
-
-      <div className="space-y-3">
-        {centros.map(centro => (
-          <div key={centro.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            {/* Header del centro */}
-            <button
-              onClick={() => setExpandido(expandido === centro.id ? null : centro.id)}
-              className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors text-left"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                  <Building2 className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900">{centro.nombre}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${tipoBadge[centro.tipo]}`}>
-                      {centro.tipo}
-                    </span>
-                    <span className="text-xs text-slate-400">
-                      {(centro.sucursales || []).length} ubicación(es)
-                    </span>
+        <div className="bg-white rounded-3xl shadow-lg p-6">
+          <div className="space-y-3">
+            {centros.map(centro => (
+              <div key={centro.id} className="bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden">
+                <button
+                  onClick={() => setExpandido(expandido === centro.id ? null : centro.id)}
+                  className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-100 transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900">{centro.nombre}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${tipoBadge[centro.tipo]}`}>
+                          {centro.tipo}
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          {(centro.sucursales || []).length} ubicación(es)
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              {expandido === centro.id
-                ? <ChevronUp className="w-5 h-5 text-slate-400" />
-                : <ChevronDown className="w-5 h-5 text-slate-400" />}
-            </button>
+                  {expandido === centro.id
+                    ? <ChevronUp className="w-5 h-5 text-slate-400" />
+                    : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                </button>
 
-            {/* Detalle expandido */}
-            {expandido === centro.id && (
-              <div className="px-6 pb-5 border-t border-slate-100 pt-4">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" /> Ubicaciones dependientes
-                </p>
+                {expandido === centro.id && (
+                  <div className="px-6 pb-5 border-t border-slate-200 pt-4 bg-white">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5" /> Ubicaciones dependientes
+                    </p>
+                    <div className="space-y-2 mb-4">
+                      {(centro.sucursales || []).length === 0 ? (
+                        <p className="text-sm text-slate-400 italic">Sin ubicaciones registradas</p>
+                      ) : (
+                        centro.sucursales.map(s => (
+                          <div key={s} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                              <span className="text-sm text-slate-700">{s}</span>
+                            </div>
+                            <button onClick={() => handleRemoveSucursal(centro, s)} className="text-slate-300 hover:text-red-500 transition-colors">
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
 
-                {/* Lista de sucursales */}
-                <div className="space-y-2 mb-4">
-                  {(centro.sucursales || []).length === 0 ? (
-                    <p className="text-sm text-slate-400 italic">Sin ubicaciones registradas</p>
-                  ) : (
-                    centro.sucursales.map(s => (
-                      <div key={s} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-2.5">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                          <span className="text-sm text-slate-700">{s}</span>
-                        </div>
+                    <div className="mt-5 border-t border-slate-100 pt-4">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5" /> Correos para notificaciones
+                      </p>
+                      <div className="space-y-2 mb-3">
+                        {(centro.emails_contacto || []).length === 0 ? (
+                          <p className="text-sm text-slate-400 italic">Sin correos registrados</p>
+                        ) : (
+                          centro.emails_contacto.map(email => (
+                            <div key={email} className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5">
+                              <div className="flex items-center gap-2">
+                                <Mail className="w-3.5 h-3.5 text-blue-400" />
+                                <span className="text-sm text-blue-800">{email}</span>
+                              </div>
+                              <button onClick={() => handleRemoveEmail(centro, email)} className="text-blue-300 hover:text-red-500 transition-colors">
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="email"
+                          className="flex-1 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-slate-50"
+                          placeholder="correo@ejemplo.com"
+                          value={nuevoEmail[centro.id] || ''}
+                          onChange={e => setNuevoEmail(p => ({ ...p, [centro.id]: e.target.value }))}
+                          onKeyDown={e => e.key === 'Enter' && handleAddEmail(centro)}
+                        />
                         <button
-                          onClick={() => handleRemoveSucursal(centro, s)}
-                          className="text-slate-300 hover:text-red-500 transition-colors"
+                          onClick={() => handleAddEmail(centro)}
+                          disabled={saving === centro.id + '_email' || !nuevoEmail[centro.id]?.trim()}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+                          style={{ background: '#1565c0' }}
                         >
-                          <X className="w-4 h-4" />
+                          {saving === centro.id + '_email' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                          Agregar
                         </button>
                       </div>
-                    ))
-                  )}
-                </div>
+                    </div>
 
-                {/* Correos de contacto */}
-                <div className="mt-5 border-t border-slate-100 pt-4">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5" /> Correos para notificaciones
-                  </p>
-                  <div className="space-y-2 mb-3">
-                    {(centro.emails_contacto || []).length === 0 ? (
-                      <p className="text-sm text-slate-400 italic">Sin correos registrados</p>
-                    ) : (
-                      centro.emails_contacto.map(email => (
-                        <div key={email} className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5">
-                          <div className="flex items-center gap-2">
-                            <Mail className="w-3.5 h-3.5 text-blue-400" />
-                            <span className="text-sm text-blue-800">{email}</span>
-                          </div>
-                          <button onClick={() => handleRemoveEmail(centro, email)} className="text-blue-300 hover:text-red-500 transition-colors">
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))
-                    )}
+                    <div className="flex gap-2 mt-4">
+                      <input
+                        className="flex-1 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-slate-50"
+                        placeholder="Ej: Posta Tralcapulli, Estación Médica..."
+                        value={nuevoLugar[centro.id] || ""}
+                        onChange={e => setNuevoLugar(p => ({ ...p, [centro.id]: e.target.value }))}
+                        onKeyDown={e => e.key === "Enter" && handleAddSucursal(centro)}
+                      />
+                      <button
+                        onClick={() => handleAddSucursal(centro)}
+                        disabled={saving === centro.id || !nuevoLugar[centro.id]?.trim()}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60 transition-colors"
+                        style={{ background: "#3b82f6" }}
+                      >
+                        {saving === centro.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                        Agregar
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="email"
-                      className="flex-1 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-slate-50"
-                      placeholder="correo@ejemplo.com"
-                      value={nuevoEmail[centro.id] || ''}
-                      onChange={e => setNuevoEmail(p => ({ ...p, [centro.id]: e.target.value }))}
-                      onKeyDown={e => e.key === 'Enter' && handleAddEmail(centro)}
-                    />
-                    <button
-                      onClick={() => handleAddEmail(centro)}
-                      disabled={saving === centro.id + '_email' || !nuevoEmail[centro.id]?.trim()}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
-                      style={{ background: '#1565c0' }}
-                    >
-                      {saving === centro.id + '_email' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-                      Agregar
-                    </button>
-                  </div>
-                </div>
-
-                {/* Agregar nueva ubicación */}
-                <div className="flex gap-2 mt-4">
-                  <input
-                    className="flex-1 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-slate-50"
-                    placeholder="Ej: Posta Tralcapulli, Estación Médica..."
-                    value={nuevoLugar[centro.id] || ""}
-                    onChange={e => setNuevoLugar(p => ({ ...p, [centro.id]: e.target.value }))}
-                    onKeyDown={e => e.key === "Enter" && handleAddSucursal(centro)}
-                  />
-                  <button
-                    onClick={() => handleAddSucursal(centro)}
-                    disabled={saving === centro.id || !nuevoLugar[centro.id]?.trim()}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60 transition-colors"
-                    style={{ background: "#3b82f6" }}
-                  >
-                    {saving === centro.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-                    Agregar
-                  </button>
-                </div>
+                )}
               </div>
-            )}
+            ))}
           </div>
-        ))}
-      </div>
-
-      <p className="text-xs text-slate-400 text-center mt-8">
-        Los 5 centros principales están fijos. Solo puedes agregar o quitar ubicaciones dependientes.
-      </p>
+          <p className="text-xs text-slate-400 text-center mt-6">
+            Los 5 centros principales están fijos. Solo puedes agregar o quitar ubicaciones dependientes.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -288,6 +288,7 @@ export default function Alertas() {
         </div>
       )}
 
+      <div className="bg-white rounded-3xl shadow-lg p-6">
       {/* Resumen */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
         {[
@@ -350,6 +351,7 @@ export default function Alertas() {
             <p>No hay parches en esta categoría</p>
           </div>
         )}
+      </div>
       </div>
       </div>
       </div>
