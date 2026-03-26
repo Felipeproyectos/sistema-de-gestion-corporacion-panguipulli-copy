@@ -139,6 +139,7 @@ export default function Solicitudes() {
       <div className="max-w-4xl mx-auto px-6 lg:px-10 -mt-10 pb-10">
 
       {/* Lista */}
+      <div className="bg-white rounded-3xl shadow-lg p-6 mb-6">
       <div className="space-y-3">
         {solicitudes.map(sol => {
           const equipo = equipos.find(e => e.id === sol.equipo_id);
@@ -178,6 +179,7 @@ export default function Solicitudes() {
             <p>No hay solicitudes registradas</p>
           </div>
         )}
+      </div>
       </div>
 
       {/* Modal Nueva Solicitud */}
