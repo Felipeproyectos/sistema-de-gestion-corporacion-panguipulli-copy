@@ -102,12 +102,14 @@ Deno.serve(async (req) => {
         </div>
       </div>`;
       for (const email of emailsUsuariosAsignados) {
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: email,
-          subject: `⚠️ Alertas DEA: ${totalCount} parche(s) requieren atención`,
-          body: bodyAsignados,
-        });
-        enviados++;
+        try {
+          await base44.asServiceRole.integrations.Core.SendEmail({
+            to: email,
+            subject: `⚠️ Alertas DEA: ${totalCount} parche(s) requieren atención`,
+            body: bodyAsignados,
+          });
+          enviados++;
+        } catch (_) { /* skip emails not registered in app */ }
       }
     }
 
@@ -150,12 +152,14 @@ Deno.serve(async (req) => {
         </div>
       </div>`;
       for (const email of emailsExtra) {
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: email,
-          subject: `⚠️ Alertas DEA: ${totalExtra} parche(s) requieren atención`,
-          body: bodyExtra,
-        });
-        enviados++;
+        try {
+          await base44.asServiceRole.integrations.Core.SendEmail({
+            to: email,
+            subject: `⚠️ Alertas DEA: ${totalExtra} parche(s) requieren atención`,
+            body: bodyExtra,
+          });
+          enviados++;
+        } catch (_) { /* skip emails not registered in app */ }
       }
     }
 
@@ -210,12 +214,14 @@ Deno.serve(async (req) => {
       `;
 
       for (const email of emailsCentro) {
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: email,
-          subject: `⚠️ Alertas DEA ${cesfam}: ${totalAlertas} parche(s) requieren atención`,
-          body,
-        });
-        enviados++;
+        try {
+          await base44.asServiceRole.integrations.Core.SendEmail({
+            to: email,
+            subject: `⚠️ Alertas DEA ${cesfam}: ${totalAlertas} parche(s) requieren atención`,
+            body,
+          });
+          enviados++;
+        } catch (_) { /* skip emails not registered in app */ }
       }
     }
 
