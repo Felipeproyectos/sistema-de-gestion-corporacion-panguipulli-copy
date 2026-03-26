@@ -19,6 +19,7 @@ export default function EquipoForm({ equipo, onClose, onSaved }) {
   const handleFile = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    e.target.value = "";
     setUploading(true);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     set("orden_compra_url", file_url);
@@ -28,6 +29,7 @@ export default function EquipoForm({ equipo, onClose, onSaved }) {
   const handleFoto = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    e.target.value = "";
     setUploadingFoto(true);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     set("foto_url", file_url);

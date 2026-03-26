@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, Send, Loader2 } from "lucide-react";
 import { differenceInDays, parseISO, format } from "date-fns";
 
 export default function Alertas() {
@@ -8,6 +8,8 @@ export default function Alertas() {
   const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState("todos");
+  const [enviando, setEnviando] = useState(false);
+  const [mensajeEnvio, setMensajeEnvio] = useState("");
 
   useEffect(() => {
     const init = async () => {
@@ -21,6 +23,15 @@ export default function Alertas() {
   }, []);
 
   const hoy = new Date();
+
+  const handleEnviarAlertas = async () => {
+    setEnviando(true);
+    setMensajeEnvio("");
+    const res = await base44.functions.invoke('enviarAlertasCESFAM', {});
+    const enviados = res.data?.enviados ?? 0;
+    setMensajeEnvio(enviados > 0 ? `✅ Alertas enviadas a ${enviados} correo(s)` : '⚠️ No se encontraron correos configurados para los CESFAM con alertas');
+    setEnviando(false);
+  };
 
   const getEstadoParche = (p) => {
     const dias = differenceInDays(parseISO(p.fecha_vencimiento), hoy);
@@ -62,8 +73,20 @@ export default function Alertas() {
 
   return (
     <div className="p-6 lg:p-10 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Alertas de Vencimiento</h1>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Alertas de Vencimiento</h1>
+          {mensajeEnvio && <p className="text-sm mt-1 text-slate-600">{mensajeEnvio}</p>}
+        </div>
+        <button
+          onClick={handleEnviarAlertas}
+          disabled={enviando}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+          style={{ background: "#3b82f6" }}
+        >
+          {enviando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          {enviando ? "Enviando..." : "Notificar por Email"}
+        </button>
         <p className="text-slate-500 mt-1">Control de vencimiento de parches por equipo</p>
       </div>
 
