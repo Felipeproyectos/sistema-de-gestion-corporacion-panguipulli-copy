@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { AlertTriangle, CheckCircle, Clock, Send, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, Send, Loader2, Mail, X, ChevronDown, Users, Zap } from "lucide-react";
 import { differenceInDays, parseISO, format } from "date-fns";
 
 export default function Alertas() {
@@ -10,6 +10,10 @@ export default function Alertas() {
   const [filtro, setFiltro] = useState("todos");
   const [enviando, setEnviando] = useState(false);
   const [mensajeEnvio, setMensajeEnvio] = useState("");
+  const [showNotifModal, setShowNotifModal] = useState(false);
+  const [configAlertas, setConfigAlertas] = useState([]);
+  const [modoNotif, setModoNotif] = useState("masiva"); // 'masiva' | 'individual'
+  const [cesfamSeleccionado, setCesfamSeleccionado] = useState("");
 
   useEffect(() => {
     const init = async () => {
@@ -17,6 +21,8 @@ export default function Alertas() {
       setEquipos(allEquipos);
       const allParches = await base44.entities.Parche.list();
       setParches(allParches);
+      const configs = await base44.entities.ConfigAlerta.list().catch(() => []);
+      setConfigAlertas(configs);
       setLoading(false);
     };
     init();
@@ -24,10 +30,12 @@ export default function Alertas() {
 
   const hoy = new Date();
 
-  const handleEnviarAlertas = async () => {
+  const handleEnviarAlertas = async (cesfamFiltro = null) => {
     setEnviando(true);
     setMensajeEnvio("");
-    const res = await base44.functions.invoke('enviarAlertasCESFAM', {});
+    setShowNotifModal(false);
+    const payload = cesfamFiltro ? { cesfam: cesfamFiltro } : {};
+    const res = await base44.functions.invoke('enviarAlertasCESFAM', payload);
     const enviados = res.data?.enviados ?? 0;
     setMensajeEnvio(enviados > 0 ? `✅ Alertas enviadas a ${enviados} correo(s)` : '⚠️ No se encontraron correos configurados para los CESFAM con alertas');
     setEnviando(false);
@@ -73,22 +81,116 @@ export default function Alertas() {
 
   return (
     <div className="p-6 lg:p-10 max-w-4xl mx-auto">
-      <div className="mb-8 flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Alertas de Vencimiento</h1>
-          {mensajeEnvio && <p className="text-sm mt-1 text-slate-600">{mensajeEnvio}</p>}
+      <div className="mb-8">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Alertas de Vencimiento</h1>
+            <p className="text-slate-500 mt-1">Control de vencimiento de parches por equipo</p>
+          </div>
+          <button
+            onClick={() => setShowNotifModal(true)}
+            disabled={enviando}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md disabled:opacity-60 hover:opacity-90 transition-all"
+            style={{ background: "linear-gradient(135deg, #1565c0, #0288d1)" }}
+          >
+            {enviando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+            {enviando ? "Enviando..." : "Notificar por Email"}
+            {!enviando && <ChevronDown className="w-3.5 h-3.5 opacity-70" />}
+          </button>
         </div>
-        <button
-          onClick={handleEnviarAlertas}
-          disabled={enviando}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
-          style={{ background: "#3b82f6" }}
-        >
-          {enviando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          {enviando ? "Enviando..." : "Notificar por Email"}
-        </button>
-        <p className="text-slate-500 mt-1">Control de vencimiento de parches por equipo</p>
+        {mensajeEnvio && (
+          <div className={`mt-3 px-4 py-2.5 rounded-xl text-sm font-medium inline-flex items-center gap-2 ${mensajeEnvio.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+            {mensajeEnvio}
+          </div>
+        )}
       </div>
+
+      {/* Modal de Notificación */}
+      {showNotifModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="px-7 pt-7 pb-4 border-b border-slate-100 flex items-center justify-between" style={{ background: "linear-gradient(135deg, #0f2d6b, #1565c0)" }}>
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2"><Mail className="w-5 h-5" /> Enviar Notificaciones</h2>
+                <p className="text-blue-200 text-xs mt-0.5">Selecciona el modo de envío</p>
+              </div>
+              <button onClick={() => setShowNotifModal(false)}><X className="w-5 h-5 text-white/70 hover:text-white" /></button>
+            </div>
+            <div className="px-7 py-6 space-y-4">
+              {/* Modo de envío */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setModoNotif('masiva')}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
+                    modoNotif === 'masiva' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <Zap className={`w-6 h-6 ${modoNotif === 'masiva' ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <span className={`text-sm font-semibold ${modoNotif === 'masiva' ? 'text-blue-700' : 'text-slate-600'}`}>Masiva</span>
+                  <span className="text-xs text-slate-400 text-center">Todos los CESFAM con alertas</span>
+                </button>
+                <button
+                  onClick={() => setModoNotif('individual')}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
+                    modoNotif === 'individual' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <Users className={`w-6 h-6 ${modoNotif === 'individual' ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <span className={`text-sm font-semibold ${modoNotif === 'individual' ? 'text-blue-700' : 'text-slate-600'}`}>Individual</span>
+                  <span className="text-xs text-slate-400 text-center">Seleccionar CESFAM específico</span>
+                </button>
+              </div>
+
+              {/* Selección individual */}
+              {modoNotif === 'individual' && (
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 mb-2 block">Seleccionar CESFAM</label>
+                  {configAlertas.length === 0 ? (
+                    <p className="text-sm text-slate-400 text-center py-3 bg-slate-50 rounded-xl">No hay CESFAM con correos configurados.<br/>Ve a Configuración para agregarlos.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {configAlertas.map(c => (
+                        <button
+                          key={c.id}
+                          onClick={() => setCesfamSeleccionado(c.cesfam)}
+                          className={`w-full flex items-start gap-3 p-3 rounded-xl border-2 text-left transition-all ${
+                            cesfamSeleccionado === c.cesfam ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <Mail className={`w-4 h-4 mt-0.5 flex-shrink-0 ${cesfamSeleccionado === c.cesfam ? 'text-blue-600' : 'text-slate-400'}`} />
+                          <div>
+                            <p className={`text-sm font-semibold ${cesfamSeleccionado === c.cesfam ? 'text-blue-700' : 'text-slate-700'}`}>{c.cesfam}</p>
+                            <p className="text-xs text-slate-400">{c.emails?.join(', ')}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Resumen */}
+              {modoNotif === 'masiva' && (
+                <div className="bg-blue-50 rounded-xl p-3 border border-blue-100">
+                  <p className="text-xs text-blue-700">Se notificará a <strong>{configAlertas.length} CESFAM(s)</strong> registrados con alertas activas.</p>
+                </div>
+              )}
+            </div>
+            <div className="px-7 pb-7 flex gap-3">
+              <button onClick={() => setShowNotifModal(false)} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-600 border border-slate-200 hover:bg-slate-50">Cancelar</button>
+              <button
+                onClick={() => handleEnviarAlertas(modoNotif === 'individual' ? cesfamSeleccionado : null)}
+                disabled={enviando || (modoNotif === 'individual' && !cesfamSeleccionado)}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #1565c0, #0288d1)" }}
+              >
+                {enviando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                Enviar Alerta
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Resumen */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">

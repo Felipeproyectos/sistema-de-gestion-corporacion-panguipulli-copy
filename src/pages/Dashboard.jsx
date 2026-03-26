@@ -55,18 +55,24 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
-      {/* Header con gradiente */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-500 px-6 lg:px-10 pt-12 pb-24">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40" />
+    <div className="min-h-screen" style={{ background: "#e8f4fd" }}>
+      {/* Header con gradiente azul-cian */}
+      <div className="relative overflow-hidden px-6 lg:px-10 pt-12 pb-24" style={{ background: "linear-gradient(135deg, #0f2d6b 0%, #1565c0 40%, #29b6f6 100%)" }}>
+        {/* Círculos decorativos al estilo de la imagen */}
+        <div className="absolute right-8 top-1/2 -translate-y-1/2 w-56 h-56 rounded-full opacity-20 border-4 border-white" style={{ background: "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)" }} />
+        <div className="absolute right-32 top-1/3 w-36 h-36 rounded-full opacity-15 border-4 border-cyan-200" style={{ background: "radial-gradient(circle, rgba(100,220,255,0.2) 0%, transparent 70%)" }} />
+        <div className="absolute right-4 bottom-0 w-72 h-72 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #29b6f6 0%, transparent 70%)" }} />
+        {/* Puntos decorativos */}
+        <div className="absolute left-6 bottom-4 opacity-20" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "12px 12px", width: 80, height: 50 }} />
         <div className="relative max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.2)" }}>
               <Activity className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-white">Dashboard</h1>
-              <p className="text-blue-50 text-sm mt-0.5">Bienvenido, {user?.full_name || user?.email}</p>
+              <p className="text-cyan-200 text-xs font-semibold uppercase tracking-widest">Sistema de Gestión</p>
+              <h1 className="text-3xl lg:text-4xl font-bold text-white">Dashboard DEA</h1>
+              <p className="text-blue-100 text-sm mt-0.5">Bienvenido, {user?.full_name || user?.email}</p>
             </div>
           </div>
         </div>
@@ -78,13 +84,13 @@ export default function Dashboard() {
           {stats.map((s, i) => {
             const Icon = s.icon;
             return (
-              <div key={i} className="group relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-100 hover:border-blue-200">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-50 to-transparent rounded-full -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div key={i} className="group relative bg-white rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 border-0" style={{ boxShadow: "0 8px 32px rgba(21,101,192,0.12)" }}>
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "linear-gradient(135deg, rgba(41,182,246,0.04) 0%, rgba(21,101,192,0.06) 100%)" }} />
                 <div className="relative">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ background: s.bg }}>
                     <Icon className="w-6 h-6" style={{ color: s.color }} />
                   </div>
-                  <p className="text-3xl font-bold text-slate-900 mb-1">{s.value}</p>
+                  <p className="text-3xl font-bold mb-1" style={{ color: s.color }}>{s.value}</p>
                   <p className="text-xs text-slate-500 font-medium">{s.label}</p>
                   {s.total !== undefined && (
                     <p className="text-xs text-slate-400 mt-1">de {s.total} totales</p>
