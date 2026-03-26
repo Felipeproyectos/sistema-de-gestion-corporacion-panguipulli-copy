@@ -47,12 +47,15 @@ export default function Solicitudes() {
   const [selectedSol, setSelectedSol] = useState(null);
   const [respuesta, setRespuesta] = useState("");
 
+  const [centros, setCentros] = useState([]);
+
   const load = async () => {
     try {
       const u = await base44.auth.me().catch(() => null);
       setUser(u);
       const allEquipos = await base44.entities.EquipoDEA.list().catch(() => []);
-      // Temporalmente todos ven todos los equipos
+      const allCentros = await base44.entities.Centro.list().catch(() => []);
+      setCentros(allCentros);
       setEquipos(allEquipos);
       const allSol = await base44.entities.SolicitudStock.list().catch(() => []);
       // Temporalmente todos ven todas las solicitudes
@@ -181,8 +184,8 @@ export default function Solicitudes() {
                   onChange={e => setForm(f => ({ ...f, establecimiento: e.target.value, lugar: "", equipo_id: "" }))}
                 >
                   <option value="">Seleccionar establecimiento</option>
-                  {[...new Set(equipos.map(e => e.establecimiento).filter(Boolean))].map(est => (
-                    <option key={est} value={est}>{est}</option>
+                  {centros.sort((a,b) => a.nombre.localeCompare(b.nombre)).map(c => (
+                    <option key={c.id} value={c.nombre}>{c.nombre}</option>
                   ))}
                 </select>
               </div>

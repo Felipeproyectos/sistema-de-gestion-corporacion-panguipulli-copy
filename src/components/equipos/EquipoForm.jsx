@@ -1,10 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { X, Upload, Loader2 } from "lucide-react";
 
 const ESTADOS = ["operativo", "mantenimiento", "fuera_de_servicio"];
 
 export default function EquipoForm({ equipo, onClose, onSaved }) {
+  const [centros, setCentros] = useState([]);
+
+  useEffect(() => {
+    base44.entities.Centro.list().then(data =>
+      setCentros(data.sort((a, b) => a.nombre.localeCompare(b.nombre)))
+    ).catch(() => []);
+  }, []);
+
+
   const [form, setForm] = useState(equipo || {
     marca: "", modelo: "", numero_serie: "", anio_adquisicion: new Date().getFullYear(),
     establecimiento: "", lugar_destinado: "", valor: "", estado: "operativo",
@@ -86,11 +95,30 @@ export default function EquipoForm({ equipo, onClose, onSaved }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>Establecimiento *</label>
-              <input className={inputCls} value={form.establecimiento} onChange={e => set("establecimiento", e.target.value)} />
+              <select className={inputCls} value={form.establecimiento} onChange={e => set("establecimiento", e.target.value)}>
+                <option value="">Seleccionar centro...</option>
+                {centros.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
+              </select>
             </div>
             <div>
               <label className={labelCls}>Lugar Destinado</label>
-              <input className={inputCls} value={form.lugar_destinado} onChange={e => set("lugar_destinado", e.target.value)} placeholder="Ej: Recepción piso 2" />
+              {(() => {
+                const suc = centros.find(c => c.nombre === form.establecimiento)?.sucursales || [];
+                return suc.length > 0 ? (
+                  <>
+                    <select className={inputCls} value={form.lugar_destinado} onChange={e => set("lugar_destinado", e.target.value)}>
+                      <option value="">Seleccionar lugar...</option>
+                      {suc.map(s => <option key={s} value={s}>{s}</option>)}
+                      <option value="_manual_">Otro (ingresar manual)</option>
+                    </select>
+                    {form.lugar_destinado === "_manual_" && (
+                      <input className={inputCls + " mt-2"} placeholder="Ingresar lugar manualmente" onChange={e => set("lugar_destinado", e.target.value)} />
+                    )}
+                  </>
+                ) : (
+                  <input className={inputCls} value={form.lugar_destinado} onChange={e => set("lugar_destinado", e.target.value)} placeholder="Ej: Recepción piso 2" />
+                );
+              })()}
             </div>
           </div>
 

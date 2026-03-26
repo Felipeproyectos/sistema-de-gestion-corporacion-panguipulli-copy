@@ -12,7 +12,8 @@ import {
   X,
   LogOut,
   Bell,
-  Settings } from
+  Settings,
+  Building2 } from
 "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
@@ -36,6 +37,7 @@ export default function Layout({ children, currentPageName }) {
   { label: "Solicitudes", page: "Solicitudes", icon: ClipboardList, adminOnly: false },
   { label: "Alertas", page: "Alertas", icon: Bell, adminOnly: false },
   { label: "Usuarios", page: "Usuarios", icon: Users, adminOnly: true },
+  { label: "Centros de Salud", page: "Centros", icon: Building2, adminOnly: true },
   { label: "Configuración", page: "Configuracion", icon: Settings, adminOnly: true }];
 
 
