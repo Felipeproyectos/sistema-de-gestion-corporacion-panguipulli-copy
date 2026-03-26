@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Plus, ClipboardList, CheckCircle, XCircle, Loader2, X } from "lucide-react";
+import InformeSolicitudesPDF from "@/components/solicitudes/InformeSolicitudesPDF";
 import { format, parseISO } from "date-fns";
 
 const TIPOS = [
@@ -109,13 +110,16 @@ export default function Solicitudes() {
           <h1 className="text-3xl font-bold text-slate-900">Solicitudes</h1>
           <p className="text-slate-500 mt-1">Gestión de requerimientos de stock y mantenimiento</p>
         </div>
-        <button
+        <div className="flex items-center gap-3">
+          <InformeSolicitudesPDF solicitudes={solicitudes} equipos={equipos} />
+          <button
           onClick={() => setShowForm(true)}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
           style={{ background: "#e63946" }}
         >
           <Plus className="w-4 h-4" /> Nueva Solicitud
         </button>
+        </div>
       </div>
 
       {/* Lista */}
