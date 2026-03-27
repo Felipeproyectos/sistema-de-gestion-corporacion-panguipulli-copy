@@ -19,18 +19,18 @@ export default function Alertas() {
   const [emailsExtra, setEmailsExtra] = useState([]);
 
   useEffect(() => {
-    const init = async () => {
-      const allEquipos = await base44.entities.EquipoDEA.list();
-      setEquipos(allEquipos);
-      const allParches = await base44.entities.Parche.list();
-      setParches(allParches);
-      const cs = await base44.entities.Centro.list().catch(() => []);
-      setCentros(cs);
-      const us = await base44.entities.User.list().catch(() => []);
-      setUsuarios(us);
+    Promise.all([
+      base44.entities.EquipoDEA.list(),
+      base44.entities.Parche.list(),
+      base44.entities.Centro.list().catch(() => []),
+      base44.entities.User.list().catch(() => [])
+    ]).then(([equipos, parches, centros, usuarios]) => {
+      setEquipos(equipos);
+      setParches(parches);
+      setCentros(centros);
+      setUsuarios(usuarios);
       setLoading(false);
-    };
-    init();
+    });
   }, []);
 
   const hoy = new Date();
