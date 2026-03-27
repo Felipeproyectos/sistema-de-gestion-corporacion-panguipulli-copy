@@ -79,10 +79,11 @@ export default function InformeSolicitudesPDF({ solicitudes, equipos }) {
   <meta charset="UTF-8"/>
   <title>Informe de Solicitudes</title>
   <style>
-    @page { size: letter; margin: 18mm 20mm 22mm 20mm; }
+    @page { size: letter portrait; margin: 15mm 15mm 20mm 15mm; }
     @media print {
-      body { margin: 0; background: white; }
+      body { margin: 0; padding: 0; background: white; }
       .no-print { display: none !important; }
+      .page { padding: 0; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
     }
@@ -91,53 +92,62 @@ export default function InformeSolicitudesPDF({ solicitudes, equipos }) {
       font-family: 'Segoe UI', Arial, sans-serif;
       background: #f0f4f8;
       margin: 0;
-      padding: 28px 32px;
+      padding: 20px;
       color: #1e293b;
     }
-    .page { background: white; max-width: 216mm; margin: 0 auto; padding: 24px 28px 20px; }
+    .page { background: white; width: 100%; max-width: 186mm; margin: 0 auto; padding: 20px; }
     .header {
       background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
       border-radius: 10px;
-      padding: 22px 26px;
+      padding: 16px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 22px;
+      margin-bottom: 16px;
     }
-    .header-left { display: flex; align-items: center; gap: 16px; }
-    .header-logo { width: 64px; height: 64px; object-fit: contain; background: rgba(255,255,255,0.15); border-radius: 10px; padding: 4px; }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-logo { width: 56px; height: 56px; object-fit: contain; background: rgba(255,255,255,0.15); border-radius: 8px; padding: 3px; }
     .header-title { color: white; }
-    .header-title h1 { margin: 0; font-size: 22px; font-weight: 700; }
-    .header-title p { margin: 4px 0 0; font-size: 12px; color: rgba(255,255,255,0.75); }
-    .header-right { text-align: right; color: rgba(255,255,255,0.85); font-size: 12px; line-height: 1.8; }
+    .header-title h1 { margin: 0; font-size: 18px; font-weight: 700; }
+    .header-title p { margin: 3px 0 0; font-size: 11px; color: rgba(255,255,255,0.75); }
+    .header-right { text-align: right; color: rgba(255,255,255,0.85); font-size: 11px; line-height: 1.7; white-space: nowrap; }
     .resumen-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 12px;
-      margin-bottom: 22px;
+      gap: 8px;
+      margin-bottom: 16px;
     }
     .resumen-card {
       background: white;
-      border-radius: 10px;
-      padding: 14px 12px;
+      border-radius: 8px;
+      padding: 10px 8px;
       text-align: center;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
       border-top: 3px solid var(--card-color);
     }
-    .resumen-card .num { font-size: 26px; font-weight: 700; color: var(--card-color); }
-    .resumen-card .lbl { font-size: 10px; color: #64748b; margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
-    .table-wrap { background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; margin-bottom: 20px; }
-    .table-header { padding: 14px 20px; border-bottom: 2px solid #f1f5f9; }
-    .table-header h2 { margin: 0; font-size: 15px; font-weight: 700; color: #1e293b; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .resumen-card .num { font-size: 22px; font-weight: 700; color: var(--card-color); }
+    .resumen-card .lbl { font-size: 9px; color: #64748b; margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+    .table-wrap { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); overflow: hidden; margin-bottom: 16px; }
+    .table-header { padding: 10px 14px; border-bottom: 2px solid #f1f5f9; }
+    .table-header h2 { margin: 0; font-size: 13px; font-weight: 700; color: #1e293b; }
+    table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; }
+    col.col-tipo { width: 12%; }
+    col.col-equipo { width: 13%; }
+    col.col-estab { width: 15%; }
+    col.col-cant { width: 7%; }
+    col.col-desc { width: 18%; }
+    col.col-sol { width: 18%; }
+    col.col-estado { width: 10%; }
+    col.col-fecha { width: 7%; }
     thead tr { background: #f8fafc; }
-    thead th { padding: 10px 12px; text-align: left; font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; }
+    thead th { padding: 8px 6px; text-align: left; font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 2px solid #e2e8f0; overflow: hidden; }
+    tbody td { padding: 7px 6px; border-bottom: 1px solid #f1f5f9; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
     tbody tr:nth-child(even) { background: #f8fafc; }
-    .footer { text-align: center; padding: 14px 0 0; font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 10px; }
+    .footer { text-align: center; padding: 12px 0 0; font-size: 9px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 8px; }
     .print-btn {
-      position: fixed; bottom: 24px; right: 24px;
+      position: fixed; bottom: 20px; right: 20px;
       background: #2563eb; color: white; border: none; border-radius: 10px;
-      padding: 12px 22px; font-size: 14px; font-weight: 600; cursor: pointer;
+      padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
       box-shadow: 0 4px 14px rgba(37,99,235,0.4);
     }
   </style>
@@ -170,9 +180,12 @@ export default function InformeSolicitudesPDF({ solicitudes, equipos }) {
   <div class="table-wrap">
     <div class="table-header"><h2>📋 Detalle de Solicitudes</h2></div>
     <table>
+      <colgroup>
+        <col style="width:11%"/><col style="width:13%"/><col style="width:14%"/><col style="width:6%"/><col style="width:18%"/><col style="width:19%"/><col style="width:11%"/><col style="width:8%"/>
+      </colgroup>
       <thead>
         <tr>
-          <th>Tipo</th><th>Equipo</th><th>Establecimiento</th><th>Cantidad</th><th>Descripción</th><th>Solicitante</th><th>Estado</th><th>Fecha</th>
+          <th>Tipo</th><th>Equipo</th><th>Establecimiento</th><th>Cant.</th><th>Descripción</th><th>Solicitante</th><th>Estado</th><th>Fecha</th>
         </tr>
       </thead>
       <tbody>
