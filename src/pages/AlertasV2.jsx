@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { AlertTriangle, CheckCircle, Bell, Plus, X, Loader2, Mail, Send } from "lucide-react";
+import { AlertTriangle, CheckCircle, Bell, Plus, X, Loader2, Mail, Send, ClipboardList, ChevronDown } from "lucide-react";
 import { differenceInDays, parseISO } from "date-fns";
 import { CENTROS_ESTRUCTURA } from "@/lib/centros";
 
@@ -31,6 +31,13 @@ export default function AlertasV2() {
   const [enviando, setEnviando]   = useState(false);
   const [guardando, setGuardando] = useState(false);
 
+  const [seccion, setSeccion] = useState("alertas"); // 'alertas' | 'solicitudes'
+  const [solicitudes, setSolicitudes] = useState([]);
+  const [gestionando, setGestionando] = useState(null); // solicitud seleccionada
+  const [respuestaAdmin, setRespuestaAdmin] = useState("");
+  const [nuevoEstado, setNuevoEstado] = useState("");
+  const [guardandoSol, setGuardandoSol] = useState(false);
+
   const [form, setForm] = useState({
     tipo: "mantenimiento_requerido",
     nivel: "advertencia",
@@ -54,8 +61,12 @@ export default function AlertasV2() {
       setParches(pa);
       setUsuarios(usrs);
       await generarAlertasAutomaticas(eqs, pa, al);
-      const alFinal = await base44.entities.Alerta.list();
+      const [alFinal, sols] = await Promise.all([
+        base44.entities.Alerta.list(),
+        base44.entities.Solicitud.list("-created_date").catch(() => [])
+      ]);
       setAlertas(alFinal);
+      setSolicitudes(sols);
       setLoading(false);
     };
     init();
@@ -132,6 +143,21 @@ export default function AlertasV2() {
     }));
   };
 
+  const handleGestionarSolicitud = async () => {
+    if (!gestionando) return;
+    setGuardandoSol(true);
+    await base44.entities.Solicitud.update(gestionando.id, { estado: nuevoEstado, respuesta_admin: respuestaAdmin });
+    setSolicitudes(prev => prev.map(s => s.id === gestionando.id ? { ...s, estado: nuevoEstado, respuesta_admin: respuestaAdmin } : s));
+    setGestionando(null);
+    setGuardandoSol(false);
+  };
+
+  const ESTADO_SOL = {
+    pendiente:   { label: "Pendiente",   color: "#d97706", bg: "#fffbeb" },
+    en_proceso:  { label: "En Proceso",  color: "#2563eb", bg: "#eff6ff" },
+    finalizada:  { label: "Finalizada",  color: "#16a34a", bg: "#f0fdf4" },
+  };
+
   const isAdmin = user?.role === "admin";
   const filtradas = alertas.filter(a => filtro === "todos" ? true : a.estado === filtro)
     .sort((a, b) => ({ critica: 0, advertencia: 1, info: 2 }[a.nivel] || 1) - ({ critica: 0, advertencia: 1, info: 2 }[b.nivel] || 1));
@@ -162,6 +188,19 @@ export default function AlertasV2() {
       </div>
 
       <div className="max-w-5xl mx-auto px-6 lg:px-10 pt-6 pb-10">
+        {/* Tabs principales */}
+        <div className="flex gap-2 mb-6">
+          <button onClick={() => setSeccion("alertas")} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${seccion === "alertas" ? "text-white shadow" : "bg-white text-slate-600 border border-slate-200"}`} style={seccion === "alertas" ? { background: "#1a2e4a" } : {}}>
+            <Bell className="w-4 h-4" /> Alertas
+            {counts.activa > 0 && <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">{counts.activa}</span>}
+          </button>
+          <button onClick={() => setSeccion("solicitudes")} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${seccion === "solicitudes" ? "text-white shadow" : "bg-white text-slate-600 border border-slate-200"}`} style={seccion === "solicitudes" ? { background: "#1a2e4a" } : {}}>
+            <ClipboardList className="w-4 h-4" /> Solicitudes
+            {solicitudes.filter(s => s.estado === "pendiente").length > 0 && <span className="ml-1 bg-amber-500 text-white text-xs rounded-full px-1.5 py-0.5">{solicitudes.filter(s => s.estado === "pendiente").length}</span>}
+          </button>
+        </div>
+
+        {seccion === "alertas" && (<>
         <div className="grid grid-cols-3 gap-4 mb-6">
           {[{ label: "Activas", count: counts.activa, color: "#dc2626" }, { label: "Críticas", count: counts.critica, color: "#ea580c" }, { label: "Resueltas", count: counts.resuelta, color: "#16a34a" }].map(s => (
             <div key={s.label} className="bg-white rounded-2xl p-4 shadow border border-slate-100">
@@ -211,7 +250,77 @@ export default function AlertasV2() {
             );
           })}
         </div>
+        </>)}
+
+        {seccion === "solicitudes" && (
+          <div className="space-y-3">
+            {solicitudes.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-2xl shadow text-slate-400">
+                <ClipboardList className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p>No hay solicitudes registradas</p>
+              </div>
+            ) : solicitudes.map(sol => {
+              const equipo = equipos.find(e => e.id === sol.equipo_id);
+              const est = ESTADO_SOL[sol.estado] || ESTADO_SOL.pendiente;
+              return (
+                <div key={sol.id} className="bg-white rounded-2xl shadow border border-slate-100 p-5 flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ color: est.color, background: est.bg }}>{est.label}</span>
+                      <span className="text-xs text-slate-500 truncate">{sol.tipo?.replace(/_/g, " ")}</span>
+                    </div>
+                    <p className="font-semibold text-slate-900 text-sm">{equipo ? `${equipo.marca} ${equipo.modelo}` : "Sin equipo"}</p>
+                    <p className="text-xs text-slate-500">{sol.centro} · {sol.usuario_nombre || sol.usuario_email}</p>
+                    {sol.observaciones && <p className="text-xs text-slate-400 mt-0.5 truncate">{sol.observaciones}</p>}
+                    {sol.respuesta_admin && <p className="text-xs text-blue-600 mt-1">↳ {sol.respuesta_admin}</p>}
+                  </div>
+                  {isAdmin && (
+                    <button onClick={() => { setGestionando(sol); setNuevoEstado(sol.estado); setRespuestaAdmin(sol.respuesta_admin || ""); }} className="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold text-white" style={{ background: "#1565c0" }}>Gestionar</button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {/* Modal Gestionar Solicitud */}
+      {gestionando && isAdmin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md">
+            <div className="px-7 pt-7 pb-4 border-b border-slate-100 flex items-center justify-between" style={{ background: "linear-gradient(135deg, #1a2e4a, #1565c0)", borderRadius: "1.5rem 1.5rem 0 0" }}>
+              <h2 className="text-lg font-bold text-white">Gestionar Solicitud</h2>
+              <button onClick={() => setGestionando(null)}><X className="w-5 h-5 text-white/70 hover:text-white" /></button>
+            </div>
+            <div className="px-7 py-5 space-y-4">
+              <div className="bg-slate-50 rounded-xl p-3 text-sm text-slate-700">
+                <p className="font-semibold">{gestionando.tipo?.replace(/_/g, " ")}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{gestionando.centro} · {gestionando.usuario_nombre || gestionando.usuario_email}</p>
+                {gestionando.observaciones && <p className="text-xs text-slate-400 mt-1">{gestionando.observaciones}</p>}
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-2">Estado</label>
+                <select className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm" value={nuevoEstado} onChange={e => setNuevoEstado(e.target.value)}>
+                  <option value="pendiente">Pendiente</option>
+                  <option value="en_proceso">En Proceso</option>
+                  <option value="finalizada">Finalizada</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-2">Respuesta / Comentario</label>
+                <textarea rows={3} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={respuestaAdmin} onChange={e => setRespuestaAdmin(e.target.value)} placeholder="Escribe una respuesta..." />
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setGestionando(null)} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-600 border border-slate-200">Cancelar</button>
+                <button onClick={handleGestionarSolicitud} disabled={guardandoSol} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60" style={{ background: "#1565c0" }}>
+                  {guardandoSol ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {guardandoSol ? "Guardando..." : "Guardar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Crear Alerta */}
       {showModal && (
