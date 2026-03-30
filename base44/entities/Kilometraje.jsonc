@@ -1,0 +1,28 @@
+{
+  "name": "Kilometraje",
+  "type": "object",
+  "properties": {
+    "equipo_id": {
+      "type": "string",
+      "description": "ID de la ambulancia"
+    },
+    "fecha": {
+      "type": "string",
+      "format": "date"
+    },
+    "valor_km": {
+      "type": "number"
+    },
+    "conductor": {
+      "type": "string"
+    },
+    "observaciones": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "equipo_id",
+    "fecha",
+    "valor_km"
+  ]
+}

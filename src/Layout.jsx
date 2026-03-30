@@ -14,7 +14,9 @@ import {
   Bell,
   Settings,
   Building2,
-  History } from
+  History,
+  Activity,
+  FileText } from
 "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
@@ -34,11 +36,13 @@ export default function Layout({ children, currentPageName }) {
 
   const navItems = [
   { label: "Dashboard", page: "Dashboard", icon: LayoutDashboard, adminOnly: false },
-  { label: "Equipos DEA", page: "Equipos", icon: Monitor, adminOnly: false },
-  { label: "Solicitudes", page: "Solicitudes", icon: ClipboardList, adminOnly: false },
-  { label: "Alertas", page: "Alertas", icon: Bell, adminOnly: false },
+  { label: "Equipos", page: "Equipos2", icon: Monitor, adminOnly: false },
+  { label: "Actividades", page: "Actividades", icon: Activity, adminOnly: false },
+  { label: "Alertas", page: "AlertasV2", icon: Bell, adminOnly: false },
+  { label: "Solicitudes", page: "SolicitudesV2", icon: ClipboardList, adminOnly: false },
+  { label: "Centros de Salud", page: "Centros", icon: Building2, adminOnly: false },
   { label: "Usuarios", page: "Usuarios", icon: Users, adminOnly: true },
-  { label: "Centros de Salud", page: "Centros", icon: Building2, adminOnly: true },
+  { label: "Reportes", page: "Reportes", icon: FileText, adminOnly: false },
   { label: "Historial", page: "Historial", icon: History, adminOnly: true },
   { label: "Configuración", page: "Configuracion", icon: Settings, adminOnly: true }];
 

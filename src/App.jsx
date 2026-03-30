@@ -9,6 +9,11 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 import Centros from './pages/Centros';
 import Historial from './pages/Historial';
+import Equipos2 from './pages/Equipos2';
+import Actividades from './pages/Actividades';
+import AlertasV2 from './pages/AlertasV2';
+import SolicitudesV2 from './pages/SolicitudesV2';
+import Reportes from './pages/Reportes';
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
@@ -61,6 +66,11 @@ const AuthenticatedApp = () => {
       ))}
       <Route path="/Centros" element={<LayoutWrapper currentPageName="Centros"><Centros /></LayoutWrapper>} />
       <Route path="/Historial" element={<LayoutWrapper currentPageName="Historial"><Historial /></LayoutWrapper>} />
+      <Route path="/Equipos2" element={<LayoutWrapper currentPageName="Equipos2"><Equipos2 /></LayoutWrapper>} />
+      <Route path="/Actividades" element={<LayoutWrapper currentPageName="Actividades"><Actividades /></LayoutWrapper>} />
+      <Route path="/AlertasV2" element={<LayoutWrapper currentPageName="AlertasV2"><AlertasV2 /></LayoutWrapper>} />
+      <Route path="/SolicitudesV2" element={<LayoutWrapper currentPageName="SolicitudesV2"><SolicitudesV2 /></LayoutWrapper>} />
+      <Route path="/Reportes" element={<LayoutWrapper currentPageName="Reportes"><Reportes /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

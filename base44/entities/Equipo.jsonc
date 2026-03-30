@@ -1,0 +1,88 @@
+{
+  "name": "Equipo",
+  "type": "object",
+  "properties": {
+    "numero_inventario": {
+      "type": "string",
+      "description": "N\u00famero de inventario \u00fanico"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "dea",
+        "monitor_desfibrilador",
+        "ambulancia",
+        "monitor_multiparametros"
+      ],
+      "description": "Tipo de equipo m\u00e9dico"
+    },
+    "marca": {
+      "type": "string"
+    },
+    "modelo": {
+      "type": "string"
+    },
+    "numero_serie": {
+      "type": "string"
+    },
+    "anio_adquisicion": {
+      "type": "number"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "operativo",
+        "mantenimiento",
+        "fuera_de_servicio"
+      ],
+      "default": "operativo"
+    },
+    "centro_principal": {
+      "type": "string",
+      "description": "Nombre del centro principal"
+    },
+    "subsede": {
+      "type": "string",
+      "description": "Subsede o lugar dependiente"
+    },
+    "ubicacion_especifica": {
+      "type": "string",
+      "description": "Ubicaci\u00f3n espec\u00edfica dentro del lugar, ej: Morbilidad"
+    },
+    "fecha_vencimiento_bateria": {
+      "type": "string",
+      "format": "date"
+    },
+    "patente": {
+      "type": "string",
+      "description": "Solo para ambulancias"
+    },
+    "valor": {
+      "type": "number"
+    },
+    "orden_compra_url": {
+      "type": "string"
+    },
+    "foto_url": {
+      "type": "string"
+    },
+    "usuarios_asignados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails de usuarios con acceso"
+    },
+    "notas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "numero_inventario",
+    "tipo",
+    "marca",
+    "modelo",
+    "estado",
+    "centro_principal"
+  ]
+}

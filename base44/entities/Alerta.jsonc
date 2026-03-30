@@ -1,0 +1,63 @@
+{
+  "name": "Alerta",
+  "type": "object",
+  "properties": {
+    "equipo_id": {
+      "type": "string"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "parche_vencido",
+        "parche_por_vencer",
+        "bateria_vencida",
+        "bateria_por_vencer",
+        "mantenimiento_requerido",
+        "equipo_fuera_servicio"
+      ]
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "nivel": {
+      "type": "string",
+      "enum": [
+        "critica",
+        "advertencia",
+        "info"
+      ],
+      "default": "advertencia"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "activa",
+        "resuelta"
+      ],
+      "default": "activa"
+    },
+    "centro": {
+      "type": "string"
+    },
+    "subsede": {
+      "type": "string"
+    },
+    "actividad_resolucion_id": {
+      "type": "string",
+      "description": "ID de la actividad que resuelve esta alerta"
+    },
+    "fecha_resolucion": {
+      "type": "string",
+      "format": "date"
+    },
+    "notificacion_enviada": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "equipo_id",
+    "tipo",
+    "nivel"
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "name": "Actividad",
+  "type": "object",
+  "properties": {
+    "equipo_id": {
+      "type": "string"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "cambio_parches",
+        "mantenimiento_preventivo",
+        "mantenimiento_correctivo",
+        "error_calibracion",
+        "inspeccion",
+        "traslado"
+      ]
+    },
+    "fecha": {
+      "type": "string",
+      "format": "date"
+    },
+    "usuario_email": {
+      "type": "string"
+    },
+    "usuario_nombre": {
+      "type": "string"
+    },
+    "observaciones": {
+      "type": "string"
+    },
+    "centro_origen": {
+      "type": "string",
+      "description": "Solo en traslado"
+    },
+    "subsede_origen": {
+      "type": "string"
+    },
+    "centro_destino": {
+      "type": "string",
+      "description": "Solo en traslado"
+    },
+    "subsede_destino": {
+      "type": "string"
+    },
+    "alerta_id": {
+      "type": "string",
+      "description": "Alerta que resuelve esta actividad"
+    }
+  },
+  "required": [
+    "equipo_id",
+    "tipo",
+    "fecha"
+  ]
+}

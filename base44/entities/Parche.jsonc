@@ -1,0 +1,46 @@
+{
+  "name": "Parche",
+  "type": "object",
+  "properties": {
+    "equipo_id": {
+      "type": "string",
+      "description": "ID del equipo asociado"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "adulto",
+        "pediatrico",
+        "mixto"
+      ],
+      "description": "Categor\u00eda del parche"
+    },
+    "cantidad": {
+      "type": "number"
+    },
+    "fecha_adquisicion": {
+      "type": "string",
+      "format": "date"
+    },
+    "fecha_vencimiento": {
+      "type": "string",
+      "format": "date"
+    },
+    "lote": {
+      "type": "string"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "notas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "equipo_id",
+    "tipo",
+    "cantidad",
+    "fecha_vencimiento"
+  ]
+}
