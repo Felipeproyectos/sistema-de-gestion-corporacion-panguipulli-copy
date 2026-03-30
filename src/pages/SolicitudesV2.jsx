@@ -35,7 +35,11 @@ export default function SolicitudesV2() {
 
   const reload = () => base44.entities.Solicitud.list("-fecha", 200).then(setSolicitudes);
 
-  const filtradas = solicitudes.filter(s => {
+  const isAdmin = user?.role === "admin";
+  // Usuario normal solo ve sus propias solicitudes
+  const solicitudesFiltradas = isAdmin ? solicitudes : solicitudes.filter(s => s.usuario_email === user?.email);
+
+  const filtradas = solicitudesFiltradas.filter(s => {
     if (filtroEstado !== "todos" && s.estado !== filtroEstado) return false;
     if (busqueda) {
       const eq = equipos.find(e => e.id === s.equipo_id);
@@ -110,7 +114,6 @@ export default function SolicitudesV2() {
             const equipo = equipos.find(e => e.id === sol.equipo_id);
             const tipoLabel = TIPOS_SOLICITUD.find(t => t.value === sol.tipo)?.label || sol.tipo;
             const cfg = ESTADO_CONFIG[sol.estado] || ESTADO_CONFIG.pendiente;
-            const isAdmin = user?.role === "admin";
             return (
               <div key={sol.id} className="bg-white rounded-2xl shadow border border-slate-100 p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -121,6 +124,8 @@ export default function SolicitudesV2() {
                     </div>
                     <p className="font-semibold text-slate-900 text-sm">{equipo ? `${equipo.marca} ${equipo.modelo}` : "Equipo desconocido"}</p>
                     <p className="text-xs text-slate-500">{sol.centro} · {sol.fecha}</p>
+                    {isAdmin && sol.usuario_nombre && <p className="text-xs text-slate-400">Solicitante: {sol.usuario_nombre}</p>}
+                    {sol.alerta_id && <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 inline-block mt-1">Desde alerta</span>}
                     {sol.observaciones && <p className="text-xs text-slate-500 mt-1">{sol.observaciones}</p>}
                     {sol.respuesta_admin && (
                       <p className="text-xs text-blue-600 mt-1 bg-blue-50 rounded-lg px-2 py-1">Resp: {sol.respuesta_admin}</p>
@@ -343,6 +348,10 @@ function GestionarModal({ solicitud, onClose, onSaved }) {
   const handleSave = async () => {
     setSaving(true);
     await base44.entities.Solicitud.update(solicitud.id, { estado, respuesta_admin: respuesta });
+    // Si se finaliza y tiene alerta vinculada, resolverla automáticamente
+    if (estado === "finalizada" && solicitud.alerta_id) {
+      await base44.entities.Alerta.update(solicitud.alerta_id, { estado: "resuelta", fecha_resolucion: new Date().toISOString().split("T")[0] }).catch(() => {});
+    }
     setSaving(false);
     onSaved();
   };
@@ -355,6 +364,11 @@ function GestionarModal({ solicitud, onClose, onSaved }) {
           <button onClick={onClose}><X className="w-5 h-5 text-slate-400" /></button>
         </div>
         <div className="px-7 py-5 space-y-4">
+          <div className="bg-slate-50 rounded-xl p-3">
+            <p className="text-xs font-semibold text-slate-500">Solicitante</p>
+            <p className="text-sm font-medium text-slate-800 mt-0.5">{solicitud.usuario_nombre || solicitud.usuario_email}</p>
+            {solicitud.alerta_id && <p className="text-xs text-amber-600 mt-1">⚠ Vinculada a alerta — al finalizar se resolverá automáticamente</p>}
+          </div>
           <div>
             <label className="text-xs font-semibold text-slate-600 block mb-1">Estado</label>
             <select className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={estado} onChange={e => setEstado(e.target.value)}>
