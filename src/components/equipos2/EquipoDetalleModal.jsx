@@ -73,6 +73,9 @@ export default function EquipoDetalleModal({ equipo, parches, onClose, onEdit, o
           {tab === "info" && (
             <div className="space-y-4">
               {equipo.foto_url && <img src={equipo.foto_url} alt="equipo" className="w-full h-40 object-cover rounded-xl" />}
+
+              {/* Información General */}
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Información General</p>
               <div className="grid grid-cols-2 gap-3">
                 {[
                   ["Centro", equipo.centro_principal],
@@ -88,11 +91,59 @@ export default function EquipoDetalleModal({ equipo, parches, onClose, onEdit, o
                   </div>
                 ))}
               </div>
+
               {batDias !== null && batDias <= 90 && (
                 <div className={`flex items-center gap-2 text-sm px-4 py-3 rounded-xl border ${batDias < 0 ? "bg-red-50 border-red-200 text-red-700" : "bg-amber-50 border-amber-200 text-amber-700"}`}>
                   ⚠️ Batería {batDias < 0 ? `vencida hace ${Math.abs(batDias)} días` : `vence en ${batDias} días`}
                 </div>
               )}
+
+              {/* Sección exclusiva ambulancias */}
+              {equipo.tipo === "ambulancia" && (
+                <>
+                  {equipo.conductor_responsable && (
+                    <div className="bg-blue-50 rounded-xl p-3">
+                      <p className="text-xs text-slate-400 mb-0.5">Conductor Responsable</p>
+                      <p className="text-sm font-semibold text-slate-800">{equipo.conductor_responsable}</p>
+                    </div>
+                  )}
+
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wide pt-1">Estado del Vehículo</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      ["Neumáticos", equipo.estado_neumaticos],
+                      ["Luces", equipo.estado_luces],
+                      ["Batería Vehículo", equipo.estado_bateria_vehiculo],
+                      ["Sirena", equipo.estado_sirena],
+                    ].map(([k, v]) => {
+                      const colorMap = { ok: "text-green-700 bg-green-50", desgastado: "text-amber-700 bg-amber-50", requiere_cambio: "text-red-700 bg-red-50", baja_carga: "text-amber-700 bg-amber-50", requiere_reemplazo: "text-red-700 bg-red-50", falla_leve: "text-amber-700 bg-amber-50", falla_grave: "text-red-700 bg-red-50" };
+                      const labelMap = { ok: "OK", desgastado: "Desgastado", requiere_cambio: "Requiere Cambio", baja_carga: "Baja Carga", requiere_reemplazo: "Requiere Reemplazo", falla_leve: "Falla Leve", falla_grave: "Falla Grave" };
+                      return (
+                        <div key={k} className="bg-slate-50 rounded-xl p-3">
+                          <p className="text-xs text-slate-400 mb-1">{k}</p>
+                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${colorMap[v] || "bg-slate-100 text-slate-600"}`}>{labelMap[v] || v || "—"}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Revisión Técnica */}
+                    <div className="bg-slate-50 rounded-xl p-3">
+                      <p className="text-xs text-slate-400 mb-1">Revisión Técnica</p>
+                      {(() => { const cm = { ok: "text-green-700 bg-green-50", en_gestion: "text-blue-700 bg-blue-50", pendiente: "text-amber-700 bg-amber-50", vencida: "text-red-700 bg-red-50" }; const lm = { ok: "OK", en_gestion: "En Gestión", pendiente: "Pendiente", vencida: "Vencida" }; const v = equipo.estado_revision_tecnica; return <span className={`text-xs font-bold px-2 py-1 rounded-full ${cm[v] || "bg-slate-100 text-slate-600"}`}>{lm[v] || v || "—"}</span>; })()}
+                      {equipo.fecha_vencimiento_revision_tecnica && <p className="text-xs text-slate-500 mt-1">Vence: {format(parseISO(equipo.fecha_vencimiento_revision_tecnica), "dd/MM/yyyy")}</p>}
+                    </div>
+                    {/* Permiso Circulación */}
+                    <div className="bg-slate-50 rounded-xl p-3">
+                      <p className="text-xs text-slate-400 mb-1">Permiso Circulación</p>
+                      {(() => { const cm = { ok: "text-green-700 bg-green-50", en_gestion: "text-blue-700 bg-blue-50", pendiente: "text-amber-700 bg-amber-50", vencido: "text-red-700 bg-red-50" }; const lm = { ok: "OK", en_gestion: "En Gestión", pendiente: "Pendiente", vencido: "Vencido" }; const v = equipo.estado_permiso_circulacion; return <span className={`text-xs font-bold px-2 py-1 rounded-full ${cm[v] || "bg-slate-100 text-slate-600"}`}>{lm[v] || v || "—"}</span>; })()}
+                      {equipo.fecha_vencimiento_permiso_circulacion && <p className="text-xs text-slate-500 mt-1">Vence: {format(parseISO(equipo.fecha_vencimiento_permiso_circulacion), "dd/MM/yyyy")}</p>}
+                    </div>
+                  </div>
+                </>
+              )}
+
               {equipo.notas && (
                 <div className="bg-blue-50 rounded-xl p-3 text-sm text-blue-800">
                   <p className="text-xs font-semibold text-blue-500 mb-1">Notas</p>

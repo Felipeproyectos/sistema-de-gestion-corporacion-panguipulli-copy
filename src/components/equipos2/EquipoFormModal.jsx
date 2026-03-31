@@ -10,7 +10,11 @@ export default function EquipoFormModal({ equipo, onClose, onSaved, user }) {
     anio_adquisicion: new Date().getFullYear(), estado: "operativo",
     centro_principal: isAdmin ? "" : (user?.centro || ""),
     subsede: "", ubicacion_especifica: "", fecha_vencimiento_bateria: "",
-    patente: "", valor: "", notas: ""
+    patente: "", valor: "", notas: "",
+    conductor_responsable: "",
+    estado_neumaticos: "ok", estado_luces: "ok", estado_bateria_vehiculo: "ok", estado_sirena: "ok",
+    estado_revision_tecnica: "ok", fecha_vencimiento_revision_tecnica: "",
+    estado_permiso_circulacion: "ok", fecha_vencimiento_permiso_circulacion: ""
   });
   const [saving, setSaving] = useState(false);
   const [uploadingFoto, setUploadingFoto] = useState(false);
@@ -113,12 +117,85 @@ export default function EquipoFormModal({ equipo, onClose, onSaved, user }) {
             <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" placeholder="Ej: Sala de Urgencias, Morbilidad..." value={form.ubicacion_especifica} onChange={e => set("ubicacion_especifica", e.target.value)} />
           </div>
 
-          {form.tipo === "ambulancia" && (
-            <div>
-              <label className="text-xs font-semibold text-slate-600 block mb-1">Patente</label>
-              <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" value={form.patente} onChange={e => set("patente", e.target.value)} />
+          {form.tipo === "ambulancia" && (<>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-1">Patente</label>
+                <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" value={form.patente} onChange={e => set("patente", e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-1">Conductor Responsable</label>
+                <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" placeholder="Nombre del conductor..." value={form.conductor_responsable} onChange={e => set("conductor_responsable", e.target.value)} />
+              </div>
             </div>
-          )}
+
+            <div className="border border-slate-200 rounded-2xl p-4 space-y-3">
+              <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Estado del Vehículo</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Neumáticos</label>
+                  <select className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={form.estado_neumaticos} onChange={e => set("estado_neumaticos", e.target.value)}>
+                    <option value="ok">OK</option>
+                    <option value="desgastado">Desgastado</option>
+                    <option value="requiere_cambio">Requiere Cambio</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Luces</label>
+                  <select className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={form.estado_luces} onChange={e => set("estado_luces", e.target.value)}>
+                    <option value="ok">OK</option>
+                    <option value="falla_leve">Falla Leve</option>
+                    <option value="falla_grave">Falla Grave</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Batería Vehículo</label>
+                  <select className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={form.estado_bateria_vehiculo} onChange={e => set("estado_bateria_vehiculo", e.target.value)}>
+                    <option value="ok">OK</option>
+                    <option value="baja_carga">Baja Carga</option>
+                    <option value="requiere_reemplazo">Requiere Reemplazo</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Sirena</label>
+                  <select className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={form.estado_sirena} onChange={e => set("estado_sirena", e.target.value)}>
+                    <option value="ok">OK</option>
+                    <option value="falla_leve">Falla Leve</option>
+                    <option value="falla_grave">Falla Grave</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Revisión Técnica</label>
+                  <select className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={form.estado_revision_tecnica} onChange={e => set("estado_revision_tecnica", e.target.value)}>
+                    <option value="ok">OK</option>
+                    <option value="en_gestion">En Gestión</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="vencida">Vencida</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Vencimiento Rev. Técnica</label>
+                  <input type="date" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={form.fecha_vencimiento_revision_tecnica} onChange={e => set("fecha_vencimiento_revision_tecnica", e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Permiso Circulación</label>
+                  <select className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={form.estado_permiso_circulacion} onChange={e => set("estado_permiso_circulacion", e.target.value)}>
+                    <option value="ok">OK</option>
+                    <option value="en_gestion">En Gestión</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="vencido">Vencido</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Vencimiento Permiso</label>
+                  <input type="date" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={form.fecha_vencimiento_permiso_circulacion} onChange={e => set("fecha_vencimiento_permiso_circulacion", e.target.value)} />
+                </div>
+              </div>
+            </div>
+          </>)}
 
           <div>
             <label className="text-xs font-semibold text-slate-600 block mb-1">Año Adquisición</label>

@@ -47,7 +47,7 @@
     },
     "ubicacion_especifica": {
       "type": "string",
-      "description": "Ubicaci\u00f3n espec\u00edfica dentro del lugar, ej: Morbilidad"
+      "description": "Ubicaci\u00f3n espec\u00edfica dentro del lugar"
     },
     "fecha_vencimiento_bateria": {
       "type": "string",
@@ -75,6 +75,76 @@
     },
     "notas": {
       "type": "string"
+    },
+    "conductor_responsable": {
+      "type": "string",
+      "description": "Conductor responsable (solo ambulancias)"
+    },
+    "estado_neumaticos": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "desgastado",
+        "requiere_cambio"
+      ],
+      "description": "Estado de los neum\u00e1ticos"
+    },
+    "estado_luces": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "falla_leve",
+        "falla_grave"
+      ],
+      "description": "Estado de las luces"
+    },
+    "estado_bateria_vehiculo": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "baja_carga",
+        "requiere_reemplazo"
+      ],
+      "description": "Estado de la bater\u00eda del veh\u00edculo"
+    },
+    "estado_sirena": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "falla_leve",
+        "falla_grave"
+      ],
+      "description": "Estado de la sirena"
+    },
+    "estado_revision_tecnica": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "en_gestion",
+        "pendiente",
+        "vencida"
+      ],
+      "description": "Estado de la revisi\u00f3n t\u00e9cnica"
+    },
+    "fecha_vencimiento_revision_tecnica": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de vencimiento de la revisi\u00f3n t\u00e9cnica"
+    },
+    "estado_permiso_circulacion": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "en_gestion",
+        "pendiente",
+        "vencido"
+      ],
+      "description": "Estado del permiso de circulaci\u00f3n"
+    },
+    "fecha_vencimiento_permiso_circulacion": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de vencimiento del permiso de circulaci\u00f3n"
     }
   },
   "required": [
