@@ -34,7 +34,7 @@ export default function EquipoDetalleModal({ equipo, parches, onClose, onEdit, o
 
   const tabs = [
     { key: "info", label: "Información" },
-    { key: "parches", label: `Parches (${parches.length})` },
+    ...(equipo.tipo !== "ambulancia" ? [{ key: "parches", label: `Parches (${parches.length})` }] : []),
     { key: "actividades", label: `Actividades (${actividades.length})` },
     ...(equipo.tipo === "ambulancia" ? [{ key: "km", label: "Kilometraje" }] : [])
   ];
