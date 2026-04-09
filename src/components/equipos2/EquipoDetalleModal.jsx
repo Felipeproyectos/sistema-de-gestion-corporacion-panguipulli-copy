@@ -4,11 +4,12 @@ import {
   X, Edit, Trash2, Plus, Info, Wrench, ClipboardCheck, Package, BookOpen,
   MapPin, Calendar, User, Upload, AlertTriangle, Activity, Car, Zap, Monitor,
   Hash, Gauge, FileText, Download, Shield, CheckCircle, Clock, ArrowLeft,
-  Loader2, ExternalLink
+  Loader2, ExternalLink, Printer
 } from "lucide-react";
 import { TIPOS_EQUIPO, ESTADOS_EQUIPO, TIPOS_ACTIVIDAD } from "@/lib/centros";
 import RepuestosTab from "./RepuestosTab";
 import { format, parseISO, differenceInDays } from "date-fns";
+import { generarPDFEquipo } from "@/utils/generarPDFEquipo";
 
 const TIPO_ICONS = { dea: Zap, monitor_desfibrilador: Activity, ambulancia: Car, monitor_multiparametros: Monitor };
 
@@ -18,6 +19,10 @@ export default function EquipoDetalleModal({ equipo, parches, onClose, onEdit, o
   const [tab, setTab] = useState("info");
 
   const isAdmin = user?.role === "admin";
+
+  const handleImprimirInforme = () => {
+    generarPDFEquipo({ equipo, actividades, parches });
+  };
   const estado = ESTADOS_EQUIPO.find(e => e.value === equipo.estado) || ESTADOS_EQUIPO[0];
   const tipoLabel = TIPOS_EQUIPO.find(t => t.value === equipo.tipo)?.label || equipo.tipo;
   const Icon = TIPO_ICONS[equipo.tipo] || Monitor;
@@ -88,6 +93,11 @@ export default function EquipoDetalleModal({ equipo, parches, onClose, onEdit, o
                 </h2>
               </div>
               <div className="flex items-center gap-2 ml-4">
+                <button onClick={handleImprimirInforme}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:bg-white/20"
+                  style={{ border: "1px solid rgba(255,255,255,0.3)" }}>
+                  <Printer className="w-3.5 h-3.5" /> Imprimir
+                </button>
                 <button onClick={onEdit}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:bg-white/20"
                   style={{ border: "1px solid rgba(255,255,255,0.3)" }}>
