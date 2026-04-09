@@ -163,11 +163,11 @@ export default function Reportes() {
     const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/>
 <title>Reporte de Solicitudes</title>
 <style>
-  @page { size: A4 landscape; margin: 12mm 10mm 18mm 10mm; }
+  @page { size: A4 portrait; margin: 12mm 10mm 18mm 10mm; }
   @media print { .no-print{display:none!important;} body{background:white!important;padding:0!important;} }
   * { box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   body { font-family:'Segoe UI',Arial,sans-serif; background:#f1f5f9; margin:0; padding:16px; color:#1e293b; }
-  .page { background:white; max-width:260mm; margin:0 auto; padding:16px; }
+  .page { background:white; max-width:190mm; margin:0 auto; padding:16px; }
   .header-bar { background:linear-gradient(135deg,#1e3a5f,#2563eb); border-radius:10px; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
   .header-bar h1 { color:white; margin:0; font-size:16px; font-weight:800; }
   .header-bar p { color:rgba(255,255,255,0.7); margin:3px 0 0; font-size:9.5px; }
@@ -176,9 +176,9 @@ export default function Reportes() {
   .sum-card { border-radius:8px; padding:8px 10px; text-align:center; border:1px solid #e2e8f0; }
   .sum-card .n { font-size:20px; font-weight:800; }
   .sum-card .l { font-size:8px; color:#64748b; text-transform:uppercase; font-weight:600; margin-top:1px; }
-  table { width:100%; border-collapse:collapse; font-size:9.5px; table-layout:fixed; }
-  thead th { background:#f8fafc; padding:6px 8px; text-align:left; font-size:8.5px; font-weight:700; color:#64748b; text-transform:uppercase; border-bottom:2px solid #e2e8f0; }
-  tbody td { padding:6px 8px; border-bottom:1px solid #f1f5f9; vertical-align:top; word-wrap:break-word; }
+  table { width:100%; border-collapse:collapse; font-size:8.5px; table-layout:fixed; }
+  thead th { background:#f8fafc; padding:5px 6px; text-align:left; font-size:8px; font-weight:700; color:#64748b; text-transform:uppercase; border-bottom:2px solid #e2e8f0; overflow:hidden; }
+  tbody td { padding:5px 6px; border-bottom:1px solid #f1f5f9; vertical-align:top; word-break:break-word; overflow-wrap:break-word; }
   tbody tr:nth-child(even) td { background:#f8fafc; }
   .footer-bar { text-align:center; padding:10px 0 0; font-size:8.5px; color:#94a3b8; border-top:1px solid #e2e8f0; margin-top:14px; }
   .print-btn { position:fixed; bottom:20px; right:20px; background:linear-gradient(135deg,#1565c0,#0288d1); color:white; border:none; border-radius:10px; padding:12px 24px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(21,101,192,0.4); }
@@ -198,7 +198,7 @@ export default function Reportes() {
   </div>
   ${solicitudesFiltradas.length === 0
     ? '<p style="text-align:center;color:#94a3b8;padding:20px">Sin solicitudes registradas</p>'
-    : `<table><thead><tr><th style="width:8%">Fecha</th><th style="width:13%">Tipo</th><th style="width:13%">Equipo</th><th style="width:13%">Centro</th><th style="width:12%">Solicitante</th><th style="width:10%">Estado</th><th>Observaciones</th></tr></thead><tbody>${filas}</tbody></table>`
+    : `<table><thead><tr><th style="width:9%">Fecha</th><th style="width:16%">Tipo</th><th style="width:15%">Equipo</th><th style="width:15%">Centro</th><th style="width:13%">Solicitante</th><th style="width:10%">Estado</th><th style="width:22%">Observaciones</th></tr></thead><tbody>${filas}</tbody></table>`
   }
   <div class="footer-bar"><strong>Corporación Municipal de Panguipulli</strong> &nbsp;–&nbsp; Informe elaborado por departamento de informática<br/><span style="font-size:8px">Documento generado automáticamente el ${format(hoy,"dd/MM/yyyy")} a las ${format(hoy,"HH:mm")} hrs &nbsp;|&nbsp; Sistema de Gestión de Equipos Médicos</span></div>
 </div>
