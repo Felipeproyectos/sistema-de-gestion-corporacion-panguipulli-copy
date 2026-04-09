@@ -855,7 +855,7 @@ function BitacoraTab({ equipo, user }) {
     setSaving(true);
     const kmInicial = Number(form.km_inicial);
     const activo = registros.find(r => !r.km_final);
-    if (activo) await base44.entities.Kilometraje.update(activo.id, { km_final: kmInicial > 0 ? kmInicial - 1 : kmInicial });
+    if (activo) await base44.entities.Kilometraje.update(activo.id, { km_final: kmInicial });
     await base44.entities.Kilometraje.create({ equipo_id: equipo.id, fecha: form.fecha, conductor: form.conductor, valor_km: kmInicial, km_inicial: kmInicial, observaciones: form.observaciones });
     // Guardar incidente si fue indicado
     if (form.tiene_incidente && form.incidente.trim()) {
@@ -928,7 +928,13 @@ function BitacoraTab({ equipo, user }) {
             style={{ background: showIncidenteForm ? "#FEE2E2" : "#FFF5F5", color: "#DC2626", border: "1px solid #FECACA" }}>
             <AlertTriangle className="w-4 h-4" /> Registrar Incidente
           </button>
-          <button onClick={() => { setShowConductorForm(!showConductorForm); setShowIncidenteForm(false); }}
+          <button onClick={() => {
+            const activo = registros.find(r => !r.km_final);
+            const kmPrevio = activo ? (activo.km_final || activo.km_inicial || activo.valor_km || "") : "";
+            setForm(f => ({ ...f, km_inicial: kmPrevio ? String(kmPrevio) : "" }));
+            setShowConductorForm(!showConductorForm);
+            setShowIncidenteForm(false);
+          }}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white shadow-sm"
             style={{ background: "#2563EB" }}>
             <User className="w-4 h-4" /> Asignar Conductor
