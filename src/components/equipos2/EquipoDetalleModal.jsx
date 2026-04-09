@@ -820,8 +820,11 @@ function BitacoraTab({ equipo, user }) {
   const [registros, setRegistros] = useState([]);
   const [incidentes, setIncidentes] = useState([]);
   const [showConductorForm, setShowConductorForm] = useState(false);
-  const [addingIncForKm, setAddingIncForKm] = useState(null); // km registro id
+  const [showIncidenteForm, setShowIncidenteForm] = useState(false);
+  const [addingIncForKm, setAddingIncForKm] = useState(null);
   const [form, setForm] = useState({ fecha: new Date().toISOString().split("T")[0], conductor: "", km_inicial: "", observaciones: "", incidente: "", tiene_incidente: false, tipo_incidente: "falla_mecanica", ambulancia_operativa: true });
+  const [incDirectoForm, setIncDirectoForm] = useState({ fecha: new Date().toISOString().split("T")[0], tipo_incidente: "falla_mecanica", observaciones: "", usuario_nombre: user?.full_name || "", ambulancia_operativa: true });
+  const [savingIncDirecto, setSavingIncDirecto] = useState(false);
   const [incForm, setIncForm] = useState({ observaciones: "", usuario_nombre: user?.full_name || "" });
   const [saving, setSaving] = useState(false);
   const [savingInc, setSavingInc] = useState(false);
@@ -872,6 +875,23 @@ function BitacoraTab({ equipo, user }) {
     load();
   };
 
+  const handleSaveIncidenteDirecto = async (e) => {
+    e.preventDefault();
+    setSavingIncDirecto(true);
+    await base44.functions.invoke('reportarIncidenteAmbulancia', {
+      equipo_id: equipo.id,
+      fecha: incDirectoForm.fecha,
+      tipo_incidente: incDirectoForm.tipo_incidente,
+      observaciones: incDirectoForm.observaciones,
+      usuario_nombre: incDirectoForm.usuario_nombre,
+      ambulancia_operativa: incDirectoForm.ambulancia_operativa
+    });
+    setSavingIncDirecto(false);
+    setShowIncidenteForm(false);
+    setIncDirectoForm({ fecha: new Date().toISOString().split("T")[0], tipo_incidente: "falla_mecanica", observaciones: "", usuario_nombre: user?.full_name || "", ambulancia_operativa: true });
+    load();
+  };
+
   const registroActivo = registros.find(r => !r.km_final);
   const estado = equipo.estado || "operativo";
   const estadoColor = { operativo: "#10B981", mantenimiento: "#F59E0B", fuera_de_servicio: "#EF4444" }[estado] || "#10B981";
@@ -892,11 +912,18 @@ function BitacoraTab({ equipo, user }) {
           </div>
           <p className="text-sm text-slate-500">{equipo.marca} {equipo.modelo}{equipo.patente && ` • ${equipo.patente}`}</p>
         </div>
-        <button onClick={() => setShowConductorForm(!showConductorForm)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white shadow-sm"
-          style={{ background: "#2563EB" }}>
-          <User className="w-4 h-4" /> Asignar Nuevo Conductor
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => { setShowIncidenteForm(!showIncidenteForm); setShowConductorForm(false); }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm"
+            style={{ background: showIncidenteForm ? "#FEE2E2" : "#FFF5F5", color: "#DC2626", border: "1px solid #FECACA" }}>
+            <AlertTriangle className="w-4 h-4" /> Registrar Incidente
+          </button>
+          <button onClick={() => { setShowConductorForm(!showConductorForm); setShowIncidenteForm(false); }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white shadow-sm"
+            style={{ background: "#2563EB" }}>
+            <User className="w-4 h-4" /> Asignar Conductor
+          </button>
+        </div>
       </div>
 
       {/* Conductor activo banner */}
@@ -935,6 +962,59 @@ function BitacoraTab({ equipo, user }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Formulario incidente directo */}
+      {showIncidenteForm && (
+        <form onSubmit={handleSaveIncidenteDirecto} className="bg-white p-5 rounded-2xl space-y-3" style={{ border: "1px solid #FECACA", background: "#FFF5F5" }}>
+          <p className="text-xs font-bold text-red-500 uppercase tracking-widest">Registrar Incidente</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600 block mb-1">Tipo de Incidente *</label>
+              <select required className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" style={{ borderColor: "#FECACA" }}
+                value={incDirectoForm.tipo_incidente} onChange={e => setIncDirectoForm(f => ({ ...f, tipo_incidente: e.target.value }))}>
+                <option value="falla_mecanica">Falla Mecánica</option>
+                <option value="accidente">Accidente</option>
+                <option value="otros">Otros</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 block mb-1">Fecha *</label>
+              <input type="date" required className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" style={{ borderColor: "#FECACA" }}
+                value={incDirectoForm.fecha} onChange={e => setIncDirectoForm(f => ({ ...f, fecha: e.target.value }))} />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-slate-600 block mb-1">Responsable</label>
+            <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" style={{ borderColor: "#FECACA" }}
+              value={incDirectoForm.usuario_nombre} onChange={e => setIncDirectoForm(f => ({ ...f, usuario_nombre: e.target.value }))} />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-slate-600 block mb-1">Descripción *</label>
+            <textarea required rows={3} className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200 resize-none" style={{ borderColor: "#FECACA" }}
+              placeholder="Describe el incidente..." value={incDirectoForm.observaciones} onChange={e => setIncDirectoForm(f => ({ ...f, observaciones: e.target.value }))} />
+          </div>
+          <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: incDirectoForm.ambulancia_operativa ? "#F0FDF4" : "#FEF2F2", border: `1px solid ${incDirectoForm.ambulancia_operativa ? "#86EFAC" : "#FECACA"}` }}>
+            <div>
+              <p className="text-xs font-semibold" style={{ color: incDirectoForm.ambulancia_operativa ? "#16A34A" : "#DC2626" }}>
+                {incDirectoForm.ambulancia_operativa ? "✓ Ambulancia Operativa" : "✗ Ambulancia Fuera de Servicio"}
+              </p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {incDirectoForm.ambulancia_operativa ? "La ambulancia puede continuar en servicio" : "Se notificará a los administradores por correo"}
+              </p>
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={incDirectoForm.ambulancia_operativa} onChange={e => setIncDirectoForm(f => ({ ...f, ambulancia_operativa: e.target.checked }))} />
+              <span className="text-xs font-medium text-slate-600">Operativa</span>
+            </label>
+          </div>
+          <div className="flex gap-2">
+            <button type="submit" disabled={savingIncDirecto} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "#EF4444" }}>
+              {savingIncDirecto ? "Guardando..." : "Registrar Incidente"}
+            </button>
+            <button type="button" onClick={() => setShowIncidenteForm(false)} className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
+          </div>
+        </form>
       )}
 
       {/* Formulario nuevo conductor */}
