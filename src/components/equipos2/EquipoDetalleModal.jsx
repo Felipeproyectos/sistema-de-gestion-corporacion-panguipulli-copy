@@ -383,9 +383,6 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
     .filter(a => ["inspeccion", "error_calibracion"].includes(a.tipo))
     .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
-  const tipoLabel = { inspeccion: "Inspección", error_calibracion: "Error de Calibración" };
-  const tipoColor = { inspeccion: "#2563EB", error_calibracion: "#EF4444" };
-
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -401,23 +398,48 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
     await base44.entities.Actividad.create({ ...form, equipo_id: equipo.id });
     setSaving(false);
     setShowForm(false);
-    setForm(f => ({ ...f, archivo_url: "" }));
+    setForm(f => ({ ...f, archivo_url: "", usuario_nombre: user?.full_name || "" }));
     onUpdated();
   };
 
-  return (
-    <div className="space-y-5">
-      <SectionHeader title="Historial de Inspecciones" count={inspecciones.length} onAdd={() => setShowForm(!showForm)} />
+  const totalInsp = inspecciones.length;
+  const cumplimiento = totalInsp === 0 ? 100 : Math.round((inspecciones.filter(i => i.tipo === "inspeccion").length / totalInsp) * 100);
 
+  const hoy = new Date();
+  const fechaVence = equipo.fecha_vencimiento_revision_tecnica;
+  const diasVence = fechaVence ? Math.ceil((new Date(fechaVence) - hoy) / (1000 * 60 * 60 * 24)) : null;
+  const estadoCert = equipo.estado_revision_tecnica;
+  const certBadge = {
+    ok: { label: "VIGENTE", color: "#16A34A", bg: "#F0FDF4" },
+    en_gestion: { label: "EN GESTIÓN", color: "#2563EB", bg: "#EFF6FF" },
+    pendiente: { label: "PENDIENTE", color: "#D97706", bg: "#FFFBEB" },
+    vencida: { label: "VENCIDA", color: "#DC2626", bg: "#FEF2F2" }
+  }[estadoCert] || { label: "SIN DATOS", color: "#94A3B8", bg: "#F8FAFC" };
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Gestión de Calidad y Seguridad</p>
+          <h2 className="text-xl font-bold text-slate-900">Historial de Inspección</h2>
+        </div>
+        <button onClick={() => setShowForm(!showForm)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+          style={{ background: "#2563EB" }}>
+          <Plus className="w-4 h-4" /> Nuevo Reporte
+        </button>
+      </div>
+
+      {/* Formulario */}
       {showForm && (
-        <div className="bg-white p-5 rounded-2xl space-y-4" style={{ border: "1px solid #E2E8F0" }}>
+        <div className="bg-white p-5 rounded-2xl space-y-3" style={{ border: "1px solid #E2E8F0" }}>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nueva Inspección</p>
           <form onSubmit={handleSave} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-600 block mb-1">Tipo</label>
-                <select className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-                  style={{ borderColor: "#E2E8F0" }}
+                <select className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" style={{ borderColor: "#E2E8F0" }}
                   value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}>
                   <option value="inspeccion">Inspección</option>
                   <option value="error_calibracion">Error de Calibración</option>
@@ -425,83 +447,166 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
               </div>
               <div>
                 <label className="text-xs font-medium text-slate-600 block mb-1">Fecha</label>
-                <input type="date" required className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-                  style={{ borderColor: "#E2E8F0" }}
+                <input type="date" required className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" style={{ borderColor: "#E2E8F0" }}
                   value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} />
               </div>
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 block mb-1">Responsable (Técnico Biomédico)</label>
-              <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-                style={{ borderColor: "#E2E8F0" }}
+              <label className="text-xs font-medium text-slate-600 block mb-1">Responsable</label>
+              <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" style={{ borderColor: "#E2E8F0" }}
                 value={form.usuario_nombre} onChange={e => setForm(f => ({ ...f, usuario_nombre: e.target.value }))} />
             </div>
             <div>
               <label className="text-xs font-medium text-slate-600 block mb-1">Observaciones</label>
-              <textarea rows={2} className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none"
-                style={{ borderColor: "#E2E8F0" }}
+              <textarea rows={2} className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none" style={{ borderColor: "#E2E8F0" }}
                 value={form.observaciones} onChange={e => setForm(f => ({ ...f, observaciones: e.target.value }))} />
             </div>
-
-            {/* File upload */}
             <div>
-              <label className="text-xs font-medium text-slate-600 block mb-1">Adjuntar Documento (PDF, Word)</label>
-              <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                className="hidden" onChange={handleFile} />
+              <label className="text-xs font-medium text-slate-600 block mb-1">Adjuntar Documento</label>
+              <input ref={fileRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleFile} />
               {form.archivo_url ? (
                 <div className="flex items-center gap-2 p-3 rounded-xl" style={{ background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
-                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                  <span className="text-xs text-green-700 font-medium flex-1">Archivo cargado correctamente</span>
-                  <a href={form.archivo_url} target="_blank" rel="noreferrer"
-                    className="text-xs text-green-700 underline flex items-center gap-1">
-                    Ver <ExternalLink className="w-3 h-3" />
-                  </a>
-                  <button type="button" onClick={() => setForm(f => ({ ...f, archivo_url: "" }))}
-                    className="text-slate-400 hover:text-red-400">
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span className="text-xs text-green-700 font-medium flex-1">Archivo cargado</span>
+                  <a href={form.archivo_url} target="_blank" rel="noreferrer" className="text-xs text-green-700 underline flex items-center gap-1">Ver <ExternalLink className="w-3 h-3" /></a>
+                  <button type="button" onClick={() => setForm(f => ({ ...f, archivo_url: "" }))} className="text-slate-400 hover:text-red-400"><X className="w-3.5 h-3.5" /></button>
                 </div>
               ) : (
                 <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-                  className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-medium transition-all hover:border-blue-400"
+                  className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-medium"
                   style={{ border: "2px dashed #CBD5E1", color: "#64748B", background: "#F8FAFC" }}>
                   {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Subiendo...</> : <><Upload className="w-4 h-4" /> Seleccionar PDF o Word</>}
                 </button>
               )}
             </div>
-
-            <div className="flex gap-2 pt-1">
-              <button type="submit" disabled={saving || uploading}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "#2563EB" }}>
+            <div className="flex gap-2">
+              <button type="submit" disabled={saving || uploading} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "#2563EB" }}>
                 {saving ? "Guardando..." : "Guardar Inspección"}
               </button>
-              <button type="button" onClick={() => { setShowForm(false); setForm(f => ({ ...f, archivo_url: "" })); }}
-                className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">
-                Cancelar
-              </button>
+              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Certificación Anual */}
-      <div className="bg-white p-4 rounded-2xl" style={{ border: "1px solid #BFDBFE" }}>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">Certificación Anual</p>
-            <p className="text-sm font-semibold text-slate-800">Documentos técnicos certificados</p>
-            <p className="text-xs text-slate-400 mt-0.5">Certificado oficial del fabricante o taller autorizado</p>
+      {/* Layout 2 columnas */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Columna izquierda */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E2E8F0" }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-slate-800">Inspecciones Semanales</h3>
+              <span className="text-xs font-bold px-3 py-1 rounded-full"
+                style={{ background: cumplimiento >= 90 ? "#DCFCE7" : "#FEF9C3", color: cumplimiento >= 90 ? "#16A34A" : "#A16207" }}>
+                CUMPLIMIENTO: {cumplimiento}%
+              </span>
+            </div>
+            {inspecciones.length === 0 ? (
+              <EmptyState icon={ClipboardCheck} text="Sin registros de inspección" />
+            ) : (
+              <div className="space-y-2.5">
+                {inspecciones.slice(0, 5).map(act => (
+                  <InspeccionCard key={act.id} act={act} />
+                ))}
+                {inspecciones.length > 5 && (
+                  <p className="text-center text-sm text-blue-600 font-medium pt-2 cursor-pointer hover:underline">
+                    Ver historial completo ({inspecciones.length} registros)
+                  </p>
+                )}
+              </div>
+            )}
           </div>
-          <FileUploadButton label="Cargar Certificado" color="#2563EB" />
+        </div>
+
+        {/* Columna derecha */}
+        <div className="space-y-4">
+          {/* Certificación Anual */}
+          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E2E8F0" }}>
+            <h3 className="font-bold text-slate-800 mb-4">Certificación Anual</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Vencimiento</span>
+                <span className="font-semibold text-slate-800">
+                  {fechaVence ? format(parseISO(fechaVence), "dd MMM yyyy") : "—"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Estado</span>
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ color: certBadge.color, background: certBadge.bg }}>
+                  {certBadge.label}
+                </span>
+              </div>
+            </div>
+            {diasVence !== null && diasVence <= 90 && (
+              <div className="flex items-center gap-2 p-2.5 mt-3 rounded-xl text-xs"
+                style={{ background: diasVence < 0 ? "#FEF2F2" : "#FFFBEB", color: diasVence < 0 ? "#DC2626" : "#B45309" }}>
+                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                {diasVence < 0 ? `Vencida hace ${Math.abs(diasVence)} días` : `Vence en ${diasVence} días`}
+              </div>
+            )}
+            <div className="mt-4 rounded-xl p-4 text-center" style={{ border: "2px dashed #CBD5E1", background: "#F8FAFC" }}>
+              <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
+              <p className="text-sm font-medium text-slate-600">Subir nuevo certificado</p>
+              <p className="text-xs text-slate-400 mb-3">PDF, JPG o PNG (Max. 10MB)</p>
+              <FileUploadButton label="Subir Certificado" color="#2563EB" />
+            </div>
+          </div>
+
+          {/* Documentos Técnicos */}
+          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E2E8F0" }}>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Documentos Técnicos</p>
+            {equipo.orden_compra_url ? (
+              <a href={equipo.orden_compra_url} target="_blank" rel="noreferrer"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors" style={{ border: "1px solid #E2E8F0" }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "#FEF2F2" }}>
+                  <FileText className="w-4 h-4 text-red-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-800 truncate">Orden de Compra</p>
+                  <p className="text-xs text-slate-400">Documento adjunto</p>
+                </div>
+                <ExternalLink className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              </a>
+            ) : (
+              <EmptyState icon={FileText} text="Sin documentos técnicos" />
+            )}
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {inspecciones.length === 0
-        ? <EmptyState icon={ClipboardCheck} text="Sin registros de inspección" />
-        : inspecciones.map(act => (
-          <ActivityCard key={act.id} act={act} tipoLabel={tipoLabel} tipoColor={tipoColor} showArchivo />
-        ))
-      }
+function InspeccionCard({ act }) {
+  const esError = act.tipo === "error_calibracion";
+  const hora = act.created_date
+    ? new Date(act.created_date).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })
+    : "";
+  return (
+    <div className="flex items-center gap-3 p-3.5 rounded-xl" style={{ border: "1px solid #E2E8F0", background: "white" }}>
+      <div className="flex-shrink-0">
+        {esError
+          ? <AlertTriangle className="w-6 h-6 text-red-400" />
+          : <CheckCircle className="w-6 h-6 text-green-500" />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-slate-800 text-sm">
+          {esError ? "Error de Calibración" : "Inspección de Funcionamiento"}
+        </p>
+        <p className="text-xs text-slate-400 mt-0.5">{act.fecha}{hora && ` • ${hora}`}</p>
+        {act.observaciones && <p className="text-xs text-slate-500 mt-0.5 truncate">{act.observaciones}</p>}
+      </div>
+      {act.usuario_nombre && (
+        <div className="text-right flex-shrink-0">
+          <p className="text-sm font-semibold text-slate-800">{act.usuario_nombre}</p>
+          <p className="text-xs text-slate-400 uppercase tracking-wide">Responsable</p>
+        </div>
+      )}
+      {act.archivo_url && (
+        <a href={act.archivo_url} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-700 flex-shrink-0">
+          <FileText className="w-4 h-4" />
+        </a>
+      )}
     </div>
   );
 }
