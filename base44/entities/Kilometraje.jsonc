@@ -13,6 +13,12 @@
     "valor_km": {
       "type": "number"
     },
+    "km_inicial": {
+      "type": "number"
+    },
+    "km_final": {
+      "type": "number"
+    },
     "conductor": {
       "type": "string"
     },

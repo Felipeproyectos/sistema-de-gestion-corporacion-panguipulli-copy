@@ -369,7 +369,7 @@ function MantenimientoTab({ equipo, actividades, user, onUpdated }) {
 function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
-    tipo: "inspeccion",
+    tipo: "inspeccion_semanal",
     fecha: new Date().toISOString().split("T")[0],
     observaciones: "",
     usuario_nombre: user?.full_name || "",
@@ -380,7 +380,7 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
   const fileRef = useRef();
 
   const inspecciones = actividades
-    .filter(a => ["inspeccion", "error_calibracion"].includes(a.tipo))
+    .filter(a => ["inspeccion", "error_calibracion", "inspeccion_semanal", "inspeccion_anual", "incidente"].includes(a.tipo))
     .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
   const handleFile = async (e) => {
@@ -403,7 +403,7 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
   };
 
   const totalInsp = inspecciones.length;
-  const cumplimiento = totalInsp === 0 ? 100 : Math.round((inspecciones.filter(i => i.tipo === "inspeccion").length / totalInsp) * 100);
+  const cumplimiento = totalInsp === 0 ? 100 : Math.round((inspecciones.filter(i => ["inspeccion","inspeccion_semanal","inspeccion_anual"].includes(i.tipo)).length / totalInsp) * 100);
 
   const hoy = new Date();
   const fechaVence = equipo.fecha_vencimiento_revision_tecnica;
@@ -441,8 +441,9 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
                 <label className="text-xs font-medium text-slate-600 block mb-1">Tipo</label>
                 <select className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" style={{ borderColor: "#E2E8F0" }}
                   value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}>
-                  <option value="inspeccion">Inspección</option>
-                  <option value="error_calibracion">Error de Calibración</option>
+                  <option value="inspeccion_semanal">Inspección Semanal</option>
+                  <option value="inspeccion_anual">Inspección Anual</option>
+                  <option value="incidente">Incidente</option>
                 </select>
               </div>
               <div>
@@ -555,9 +556,9 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
           {/* Documentos Técnicos */}
           <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E2E8F0" }}>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Documentos Técnicos</p>
-            {equipo.orden_compra_url ? (
+            {equipo.orden_compra_url && (
               <a href={equipo.orden_compra_url} target="_blank" rel="noreferrer"
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors" style={{ border: "1px solid #E2E8F0" }}>
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors mb-3" style={{ border: "1px solid #E2E8F0" }}>
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "#FEF2F2" }}>
                   <FileText className="w-4 h-4 text-red-500" />
                 </div>
@@ -567,9 +568,8 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
                 </div>
                 <ExternalLink className="w-4 h-4 text-slate-400 flex-shrink-0" />
               </a>
-            ) : (
-              <EmptyState icon={FileText} text="Sin documentos técnicos" />
             )}
+            <FileUploadButton label="Subir Documento" color="#2563EB" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
           </div>
         </div>
       </div>
@@ -578,21 +578,25 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
 }
 
 function InspeccionCard({ act }) {
-  const esError = act.tipo === "error_calibracion";
+  const TIPO_CFG = {
+    inspeccion_semanal: { label: "Inspección Semanal", icon: CheckCircle, color: "#10B981" },
+    inspeccion_anual:   { label: "Inspección Anual",   icon: CheckCircle, color: "#2563EB" },
+    incidente:          { label: "Incidente",           icon: AlertTriangle, color: "#EF4444" },
+    inspeccion:         { label: "Inspección",          icon: CheckCircle, color: "#10B981" },
+    error_calibracion:  { label: "Error de Calibración",icon: AlertTriangle, color: "#EF4444" },
+  };
+  const cfg = TIPO_CFG[act.tipo] || { label: act.tipo, icon: CheckCircle, color: "#94A3B8" };
+  const Icon = cfg.icon;
   const hora = act.created_date
     ? new Date(act.created_date).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })
     : "";
   return (
-    <div className="flex items-center gap-3 p-3.5 rounded-xl" style={{ border: "1px solid #E2E8F0", background: "white" }}>
+    <div className="flex items-center gap-3 p-3.5 rounded-xl" style={{ border: "1px solid #E2E8F0", background: act.tipo === "incidente" ? "#FFF5F5" : "white" }}>
       <div className="flex-shrink-0">
-        {esError
-          ? <AlertTriangle className="w-6 h-6 text-red-400" />
-          : <CheckCircle className="w-6 h-6 text-green-500" />}
+        <Icon className="w-6 h-6" style={{ color: cfg.color }} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-slate-800 text-sm">
-          {esError ? "Error de Calibración" : "Inspección de Funcionamiento"}
-        </p>
+        <p className="font-semibold text-slate-800 text-sm">{cfg.label}</p>
         <p className="text-xs text-slate-400 mt-0.5">{act.fecha}{hora && ` • ${hora}`}</p>
         {act.observaciones && <p className="text-xs text-slate-500 mt-0.5 truncate">{act.observaciones}</p>}
       </div>
@@ -708,56 +712,122 @@ function ParchesTab({ equipo, parches, user, onUpdated }) {
 ══════════════════════════════════════════════ */
 function BitacoraTab({ equipo }) {
   const [registros, setRegistros] = useState([]);
-  const [showForm, setShowForm] = useState(false);
+  const [incidentes, setIncidentes] = useState([]);
+  const [showConductorForm, setShowConductorForm] = useState(false);
+  const [showIncidenteForm, setShowIncidenteForm] = useState(false);
+  const [editingIncidente, setEditingIncidente] = useState(null);
   const [form, setForm] = useState({ fecha: new Date().toISOString().split("T")[0], conductor: "", km_inicial: "", observaciones: "" });
+  const [incForm, setIncForm] = useState({ fecha: new Date().toISOString().split("T")[0], observaciones: "", usuario_nombre: "" });
   const [saving, setSaving] = useState(false);
+  const [savingInc, setSavingInc] = useState(false);
 
-  useEffect(() => {
-    base44.entities.Kilometraje.filter({ equipo_id: equipo.id })
-      .then(d => setRegistros(d.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))))
-      .catch(() => {});
-  }, [equipo.id]);
+  const load = async () => {
+    const [km, acts] = await Promise.all([
+      base44.entities.Kilometraje.filter({ equipo_id: equipo.id }),
+      base44.entities.Actividad.filter({ equipo_id: equipo.id })
+    ]);
+    setRegistros(km.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
+    setIncidentes(acts.filter(a => a.tipo === "incidente").sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
+  };
 
-  const handleSave = async (e) => {
+  useEffect(() => { load(); }, [equipo.id]);
+
+  const handleSaveConductor = async (e) => {
     e.preventDefault();
     setSaving(true);
     const kmInicial = Number(form.km_inicial);
     const activo = registros.find(r => !r.km_final);
     if (activo) await base44.entities.Kilometraje.update(activo.id, { km_final: kmInicial > 0 ? kmInicial - 1 : kmInicial });
     await base44.entities.Kilometraje.create({ equipo_id: equipo.id, fecha: form.fecha, conductor: form.conductor, valor_km: kmInicial, km_inicial: kmInicial, observaciones: form.observaciones });
-    const updated = await base44.entities.Kilometraje.filter({ equipo_id: equipo.id });
-    setRegistros(updated.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
-    setShowForm(false);
     setSaving(false);
+    setShowConductorForm(false);
     setForm({ fecha: new Date().toISOString().split("T")[0], conductor: "", km_inicial: "", observaciones: "" });
+    load();
+  };
+
+  const handleSaveIncidente = async (e) => {
+    e.preventDefault();
+    setSavingInc(true);
+    if (editingIncidente) {
+      await base44.entities.Actividad.update(editingIncidente.id, { observaciones: incForm.observaciones, fecha: incForm.fecha, usuario_nombre: incForm.usuario_nombre });
+    } else {
+      await base44.entities.Actividad.create({ equipo_id: equipo.id, tipo: "incidente", ...incForm });
+    }
+    setSavingInc(false);
+    setShowIncidenteForm(false);
+    setEditingIncidente(null);
+    setIncForm({ fecha: new Date().toISOString().split("T")[0], observaciones: "", usuario_nombre: "" });
+    load();
   };
 
   const registroActivo = registros.find(r => !r.km_final);
+  const estado = equipo.estado || "operativo";
+  const estadoColor = { operativo: "#10B981", mantenimiento: "#F59E0B", fuera_de_servicio: "#EF4444" }[estado] || "#10B981";
+  const estadoLabel = { operativo: "OPERATIVO", mantenimiento: "MANTENIMIENTO", fuera_de_servicio: "FUERA DE SERVICIO" }[estado] || "OPERATIVO";
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div><h3 className="font-bold text-slate-900">Bitácora de Conductores</h3><p className="text-xs text-slate-400 mt-0.5">Historial de asignaciones y kilometraje</p></div>
-        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "#2563EB" }}>
-          <Plus className="w-3.5 h-3.5" /> Nuevo Conductor
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            <h2 className="text-2xl font-bold text-slate-900">Bitácora de Conductores</h2>
+            <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full"
+              style={{ background: `${estadoColor}18`, color: estadoColor }}>
+              <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: estadoColor }} />
+              {estadoLabel}
+            </span>
+          </div>
+          <p className="text-sm text-slate-500">{equipo.marca} {equipo.modelo}{equipo.patente && ` • ${equipo.patente}`}</p>
+        </div>
+        <button onClick={() => setShowConductorForm(!showConductorForm)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white shadow-sm"
+          style={{ background: "#2563EB" }}>
+          <User className="w-4 h-4" /> Asignar Nuevo Conductor
         </button>
       </div>
 
+      {/* Conductor activo banner */}
       {registroActivo && (
-        <div className="p-4 rounded-2xl" style={{ background: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", border: "1px solid #BFDBFE" }}>
-          <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">Conductor Actual</p>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#DBEAFE" }}><User className="w-5 h-5 text-blue-600" /></div>
-            <div>
-              <p className="font-bold text-slate-900">{registroActivo.conductor || "Sin nombre"}</p>
-              <p className="text-xs text-slate-500">Desde {registroActivo.fecha} · KM inicial: <strong>{(registroActivo.km_inicial || registroActivo.valor_km)?.toLocaleString()}</strong></p>
+        <div className="rounded-2xl p-5" style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%)" }}>
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center relative" style={{ background: "rgba(255,255,255,0.15)" }}>
+                <User className="w-7 h-7 text-white" />
+                <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: "#10B981" }}>
+                  <CheckCircle className="w-3 h-3 text-white" />
+                </span>
+              </div>
+              <div>
+                <p className="text-xs text-blue-200 uppercase tracking-widest font-semibold mb-0.5">Conductor Actual</p>
+                <p className="text-xl font-bold text-white">{registroActivo.conductor || "Sin nombre"}</p>
+                <p className="text-sm text-blue-200 mt-0.5 flex items-center gap-2">
+                  <Calendar className="w-3.5 h-3.5" /> Desde: {registroActivo.fecha}
+                  <Clock className="w-3.5 h-3.5 ml-1" /> Turno activo
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="text-center">
+                <p className="text-xs text-blue-200 uppercase tracking-widest">KM Inicial</p>
+                <p className="text-2xl font-bold text-white">{((registroActivo.km_inicial || registroActivo.valor_km) || 0).toLocaleString()}</p>
+                <p className="text-xs text-blue-200">km</p>
+              </div>
+              {registroActivo.km_final && (
+                <div className="text-center">
+                  <p className="text-xs text-blue-200 uppercase tracking-widest">Distancia</p>
+                  <p className="text-2xl font-bold text-white">{(registroActivo.km_final - (registroActivo.km_inicial || registroActivo.valor_km)).toLocaleString()}</p>
+                  <p className="text-xs text-blue-200">km</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {showForm && (
-        <form onSubmit={handleSave} className="bg-white p-5 rounded-2xl space-y-3" style={{ border: "1px solid #E2E8F0" }}>
+      {/* Formulario nuevo conductor */}
+      {showConductorForm && (
+        <form onSubmit={handleSaveConductor} className="bg-white p-5 rounded-2xl space-y-3" style={{ border: "1px solid #E2E8F0" }}>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Asignar Nuevo Conductor</p>
           {registroActivo && (
             <div className="flex items-center gap-2 text-xs p-3 rounded-xl" style={{ background: "#FFFBEB", border: "1px solid #FDE68A", color: "#B45309" }}>
@@ -781,36 +851,145 @@ function BitacoraTab({ equipo }) {
           </div>
           <div className="flex gap-2">
             <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "#2563EB" }}>{saving ? "Guardando..." : "Confirmar Asignación"}</button>
-            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
+            <button type="button" onClick={() => setShowConductorForm(false)} className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
           </div>
         </form>
       )}
 
-      {registros.length === 0 ? <EmptyState icon={BookOpen} text="Sin registros en la bitácora" /> : (
-        <div className="space-y-2.5">
-          {registros.map(r => {
-            const isActive = !r.km_final;
-            return (
-              <div key={r.id} className="bg-white p-3.5 rounded-xl flex items-center justify-between"
-                style={{ border: `1px solid ${isActive ? "#BFDBFE" : "#E2E8F0"}`, background: isActive ? "#F0F9FF" : "white" }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: isActive ? "#DBEAFE" : "#F1F5F9" }}>
-                    <User className="w-4 h-4" style={{ color: isActive ? "#2563EB" : "#94A3B8" }} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-slate-900">{r.conductor || "Sin nombre"}</p>
-                      {isActive && <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "#DBEAFE", color: "#2563EB" }}>ACTIVO</span>}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-0.5">{r.fecha} · KM inicial: <strong>{(r.km_inicial || r.valor_km)?.toLocaleString()}</strong>{r.km_final && <> · KM final: <strong>{r.km_final?.toLocaleString()}</strong></>}</p>
-                  </div>
-                </div>
-                {r.km_final && <span className="text-xs font-semibold text-slate-500">{(r.km_final - (r.km_inicial || r.valor_km))?.toLocaleString()} km</span>}
-              </div>
-            );
-          })}
+      {/* Tabla asignaciones recientes */}
+      <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #E2E8F0" }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Asignaciones Recientes</p>
         </div>
-      )}
+        {registros.length === 0 ? (
+          <EmptyState icon={BookOpen} text="Sin registros en la bitácora" />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-slate-50">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-widest">Conductor</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-widest">Fecha</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-widest">KM Inicio</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-widest">KM Fin</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-widest">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {registros.map(r => {
+                  const isActive = !r.km_final;
+                  const kmIni = r.km_inicial || r.valor_km || 0;
+                  const dist = r.km_final ? r.km_final - kmIni : null;
+                  return (
+                    <tr key={r.id} className={isActive ? "bg-blue-50" : "hover:bg-slate-50"}>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                            style={{ background: isActive ? "#DBEAFE" : "#F1F5F9" }}>
+                            <User className="w-4 h-4" style={{ color: isActive ? "#2563EB" : "#94A3B8" }} />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-900">{r.conductor || "Sin nombre"}</p>
+                            {isActive
+                              ? <p className="text-xs text-blue-500 font-medium">Turno activo</p>
+                              : <p className="text-xs text-slate-400">Turno finalizado</p>}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <p className="font-medium text-slate-700">{r.fecha}</p>
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-semibold text-slate-800">{kmIni.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-right font-semibold text-slate-500">{r.km_final ? r.km_final.toLocaleString() : <span className="text-blue-400">activo</span>}</td>
+                      <td className="px-5 py-3.5 text-right">
+                        {dist !== null
+                          ? <span className="px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: "#EFF6FF", color: "#2563EB" }}>{dist.toLocaleString()} km</span>
+                          : <span className="text-slate-300">—</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {registroActivo && (
+          <div className="px-5 py-3 flex items-start gap-3" style={{ background: "#EFF6FF", borderTop: "1px solid #DBEAFE" }}>
+            <Zap className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-blue-700">Traspaso Automático Activo</p>
+              <p className="text-xs text-blue-500">Al asignar un nuevo conductor, el registro de <strong>{registroActivo.conductor}</strong> se cerrará automáticamente.</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Incidentes */}
+      <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #E2E8F0" }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Incidentes</p>
+            <p className="text-xs text-slate-400 mt-0.5">{incidentes.length} registro(s)</p>
+          </div>
+          <button onClick={() => { setEditingIncidente(null); setIncForm({ fecha: new Date().toISOString().split("T")[0], observaciones: "", usuario_nombre: "" }); setShowIncidenteForm(true); }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "#EF4444" }}>
+            <Plus className="w-3.5 h-3.5" /> Registrar Incidente
+          </button>
+        </div>
+
+        {showIncidenteForm && (
+          <div className="p-5 border-b border-slate-100 bg-red-50">
+            <form onSubmit={handleSaveIncidente} className="space-y-3">
+              <p className="text-xs font-bold text-red-500 uppercase tracking-widest">{editingIncidente ? "Editar Incidente" : "Nuevo Incidente"}</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-600 block mb-1">Fecha</label>
+                  <input type="date" required className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" style={{ borderColor: "#FECACA" }}
+                    value={incForm.fecha} onChange={e => setIncForm(f => ({ ...f, fecha: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600 block mb-1">Responsable</label>
+                  <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" style={{ borderColor: "#FECACA" }}
+                    value={incForm.usuario_nombre} onChange={e => setIncForm(f => ({ ...f, usuario_nombre: e.target.value }))} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 block mb-1">Descripción del Incidente *</label>
+                <textarea required rows={3} className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200 resize-none" style={{ borderColor: "#FECACA" }}
+                  placeholder="Ej: Se pinchó un neumático en sector Cayumapu..." value={incForm.observaciones} onChange={e => setIncForm(f => ({ ...f, observaciones: e.target.value }))} />
+              </div>
+              <div className="flex gap-2">
+                <button type="submit" disabled={savingInc} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "#EF4444" }}>
+                  {savingInc ? "Guardando..." : editingIncidente ? "Guardar Cambios" : "Registrar Incidente"}
+                </button>
+                <button type="button" onClick={() => { setShowIncidenteForm(false); setEditingIncidente(null); }} className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {incidentes.length === 0 ? (
+          <EmptyState icon={AlertTriangle} text="Sin incidentes registrados" />
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {incidentes.map(inc => (
+              <div key={inc.id} className="flex items-start gap-3 px-5 py-4 hover:bg-slate-50">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "#FEF2F2" }}>
+                  <AlertTriangle className="w-4 h-4 text-red-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-800">{inc.observaciones || "Sin descripción"}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{inc.fecha}{inc.usuario_nombre && ` • ${inc.usuario_nombre}`}</p>
+                </div>
+                <button onClick={() => { setEditingIncidente(inc); setIncForm({ fecha: inc.fecha, observaciones: inc.observaciones || "", usuario_nombre: inc.usuario_nombre || "" }); setShowIncidenteForm(true); }}
+                  className="text-slate-300 hover:text-blue-500 transition-colors flex-shrink-0 p-1">
+                  <Edit className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -869,7 +1048,7 @@ function ActividadForm({ form, setForm, saving, onSave, onCancel, tipoOptions })
   );
 }
 
-function FileUploadButton({ label, color }) {
+function FileUploadButton({ label, color, accept = ".pdf,.doc,.docx" }) {
   const ref = useRef();
   const [uploading, setUploading] = useState(false);
   const [url, setUrl] = useState(null);
@@ -885,7 +1064,7 @@ function FileUploadButton({ label, color }) {
 
   return (
     <>
-      <input ref={ref} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleFile} />
+      <input ref={ref} type="file" accept={accept} className="hidden" onChange={handleFile} />
       {url ? (
         <a href={url} target="_blank" rel="noreferrer"
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold"

@@ -13,7 +13,10 @@
         "mantenimiento_correctivo",
         "error_calibracion",
         "inspeccion",
-        "traslado"
+        "traslado",
+        "inspeccion_semanal",
+        "inspeccion_anual",
+        "incidente"
       ]
     },
     "fecha": {
@@ -30,22 +33,22 @@
       "type": "string"
     },
     "centro_origen": {
-      "type": "string",
-      "description": "Solo en traslado"
+      "type": "string"
     },
     "subsede_origen": {
       "type": "string"
     },
     "centro_destino": {
-      "type": "string",
-      "description": "Solo en traslado"
+      "type": "string"
     },
     "subsede_destino": {
       "type": "string"
     },
     "alerta_id": {
-      "type": "string",
-      "description": "Alerta que resuelve esta actividad"
+      "type": "string"
+    },
+    "archivo_url": {
+      "type": "string"
     }
   },
   "required": [
