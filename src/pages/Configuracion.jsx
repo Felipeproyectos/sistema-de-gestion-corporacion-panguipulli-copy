@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Upload, Loader2, Save, Settings, Users, Shield, Mail, UserPlus, Trash2, Edit2, X, Check, AlertTriangle } from "lucide-react";
+import { Upload, Loader2, Save, Settings, Users, Shield, Mail, UserPlus, Trash2, Edit2, X, Check, AlertTriangle, Car, ExternalLink, Copy, CheckCircle } from "lucide-react";
 
 export default function Configuracion() {
   const [user, setUser]     = useState(null);
@@ -35,7 +35,6 @@ export default function Configuracion() {
         setForm({ nombre_app: configs[0].nombre_app || "", subtitulo: configs[0].subtitulo || "", logo_url: configs[0].logo_url || "" });
       }
       setUsuarios(usrs);
-      // Centros desde estructura fija
       const { CENTROS_ESTRUCTURA } = await import("@/lib/centros");
       setCentros(CENTROS_ESTRUCTURA.map(c => c.nombre));
     };
@@ -76,7 +75,6 @@ export default function Configuracion() {
     setInvMsg("");
     try {
       await base44.users.inviteUser(invEmail, invRole);
-      // Buscar el usuario recién creado para asignarle los centros
       const updated = await base44.entities.User.list().catch(() => []);
       const newUser = updated.find(u => u.email === invEmail);
       if (newUser && invCentros.length > 0) {
@@ -139,7 +137,6 @@ export default function Configuracion() {
           <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
             <Settings className="w-5 h-5 text-blue-500" /> Personalización del Sistema
           </h2>
-
           <div className="flex items-center gap-4 p-5 rounded-xl bg-slate-800">
             <div className="flex items-center justify-center overflow-hidden flex-shrink-0" style={form.logo_url ? { width: 52, height: 52 } : { width: 44, height: 44, background: "#2563eb", borderRadius: 12 }}>
               {form.logo_url ? <img src={form.logo_url} alt="logo" className="w-full h-full object-contain" /> : <Settings className="w-6 h-6 text-white" />}
@@ -149,7 +146,6 @@ export default function Configuracion() {
               <p className="text-white/40 text-xs mt-0.5">{form.subtitulo || "Subtítulo"}</p>
             </div>
           </div>
-
           <div>
             <label className={labelCls}>Logo institucional</label>
             <div className="flex items-center gap-4">
@@ -181,8 +177,6 @@ export default function Configuracion() {
           <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-500" /> Administración de Usuarios
           </h2>
-
-          {/* Invitar */}
           <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100 space-y-3">
             <p className="text-xs font-semibold text-blue-700 flex items-center gap-1.5"><UserPlus className="w-3.5 h-3.5" /> Invitar nuevo usuario</p>
             <div className="flex gap-2 flex-wrap">
@@ -198,11 +192,7 @@ export default function Configuracion() {
                 <div className="flex flex-wrap gap-2">
                   {centros.map(c => (
                     <button key={c} type="button" onClick={() => toggleInvCentro(c)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
-                        invCentros.includes(c)
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white text-slate-600 border-slate-200 hover:border-blue-400"
-                      }`}>
+                      className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${invCentros.includes(c) ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-400"}`}>
                       {c}
                     </button>
                   ))}
@@ -215,8 +205,6 @@ export default function Configuracion() {
             </button>
             {invMsg && <p className={`text-xs ${invMsg.startsWith("✅") ? "text-green-600" : "text-red-600"}`}>{invMsg}</p>}
           </div>
-
-          {/* Lista usuarios */}
           <div className="space-y-2">
             {usuarios.map(u => (
               <div key={u.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:bg-slate-50">
@@ -236,11 +224,7 @@ export default function Configuracion() {
                         <div className="flex flex-wrap gap-1.5">
                           {centros.map(c => (
                             <button key={c} type="button" onClick={() => toggleEditCentro(c)}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
-                                (editingUser.centros_asignados || []).includes(c)
-                                  ? "bg-blue-600 text-white border-blue-600"
-                                  : "bg-white text-slate-600 border-slate-200 hover:border-blue-400"
-                              }`}>
+                              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${(editingUser.centros_asignados || []).includes(c) ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-400"}`}>
                               {c}
                             </button>
                           ))}
@@ -252,14 +236,14 @@ export default function Configuracion() {
                   <>
                     <div>
                       <p className="text-sm font-semibold text-slate-800">{u.full_name || u.email}</p>
-                        <p className="text-xs text-slate-400">{u.email} · <span className={u.role === "admin" ? "text-blue-600 font-medium" : "text-slate-500"}>{u.role === "admin" ? "Administrador" : "Usuario"}</span></p>
-                        {u.role !== "admin" && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {(u.centros_asignados?.length > 0) ? u.centros_asignados.map(c => (
-                              <span key={c} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#EFF6FF", color: "#2563EB" }}>{c}</span>
-                            )) : <span className="text-xs text-amber-500">Sin centros asignados (ve todos)</span>}
-                          </div>
-                        )}
+                      <p className="text-xs text-slate-400">{u.email} · <span className={u.role === "admin" ? "text-blue-600 font-medium" : "text-slate-500"}>{u.role === "admin" ? "Administrador" : "Usuario"}</span></p>
+                      {u.role !== "admin" && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {(u.centros_asignados?.length > 0) ? u.centros_asignados.map(c => (
+                            <span key={c} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#EFF6FF", color: "#2563EB" }}>{c}</span>
+                          )) : <span className="text-xs text-amber-500">Sin centros asignados (ve todos)</span>}
+                        </div>
+                      )}
                     </div>
                     <button onClick={() => setEditingUser({ ...u })} className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600">
                       <Edit2 className="w-4 h-4" />
@@ -271,6 +255,10 @@ export default function Configuracion() {
             {usuarios.length === 0 && <p className="text-center text-sm text-slate-400 py-6">No hay usuarios registrados</p>}
           </div>
         </div>
+
+        {/* Enlace Bitácora Pública */}
+        <BitacoraPublicaLink />
+
         {/* Zona peligrosa */}
         <div className="bg-white rounded-3xl shadow-lg p-8 space-y-4 border border-red-100">
           <h2 className="text-base font-bold text-red-600 flex items-center gap-2">
@@ -278,38 +266,86 @@ export default function Configuracion() {
           </h2>
           <p className="text-sm text-slate-500">Eliminar tu cuenta es una acción permanente e irreversible. Todos tus datos serán borrados.</p>
           {!deleteConfirm ? (
-            <button
-              onClick={() => setDeleteConfirm(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-red-600 border border-red-200 hover:bg-red-50 transition-colors"
-            >
+            <button onClick={() => setDeleteConfirm(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-red-600 border border-red-200 hover:bg-red-50 transition-colors">
               <Trash2 className="w-4 h-4" /> Eliminar mi cuenta
             </button>
           ) : (
             <div className="p-4 rounded-xl bg-red-50 border border-red-200 space-y-3">
               <p className="text-sm font-semibold text-red-700">¿Estás seguro? Esta acción no se puede deshacer.</p>
               <div className="flex gap-3">
-                <button
-                  onClick={async () => {
-                    setDeleting(true);
-                    await base44.auth.logout();
-                  }}
-                  disabled={deleting}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 disabled:opacity-60"
-                >
+                <button onClick={async () => { setDeleting(true); await base44.auth.logout(); }} disabled={deleting}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 disabled:opacity-60">
                   {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                   Sí, eliminar cuenta
                 </button>
-                <button
-                  onClick={() => setDeleteConfirm(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100"
-                >
-                  Cancelar
-                </button>
+                <button onClick={() => setDeleteConfirm(false)} className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
               </div>
             </div>
           )}
         </div>
 
+      </div>
+    </div>
+  );
+}
+
+function BitacoraPublicaLink() {
+  const [copied, setCopied] = useState(false);
+  const url = `${window.location.origin}/bitacora-publica`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div className="bg-white rounded-3xl shadow-lg p-8 space-y-5">
+      <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
+        <Car className="w-5 h-5 text-blue-500" /> Formulario Público — Bitácora de Conductores
+      </h2>
+
+      <div className="rounded-2xl p-5 space-y-2" style={{ background: "#EFF6FF", border: "1px solid #BFDBFE" }}>
+        <p className="text-sm font-semibold text-blue-800">¿Para qué sirve este enlace?</p>
+        <p className="text-sm text-blue-700">
+          Permite a los conductores registrar su asignación y kilometraje de forma directa, <strong>sin necesidad de tener una cuenta</strong> en el sistema. Comparte este enlace con los conductores y los registros quedarán guardados automáticamente en la bitácora de cada ambulancia.
+        </p>
+      </div>
+
+      <div>
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Enlace del formulario</p>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 font-mono truncate">
+            {url}
+          </div>
+          <button onClick={handleCopy}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white flex-shrink-0 transition-all"
+            style={{ background: copied ? "#10B981" : "#2563EB" }}>
+            {copied ? <><CheckCircle className="w-4 h-4" /> Copiado</> : <><Copy className="w-4 h-4" /> Copiar</>}
+          </button>
+          <a href="/bitacora-publica" target="_blank" rel="noreferrer"
+            className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-blue-600 transition-colors flex-shrink-0">
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        </div>
+      </div>
+
+      <div className="rounded-xl p-4" style={{ background: "#F8FAFC", border: "1px solid #E2E8F0" }}>
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">Los conductores podrán ingresar:</p>
+        <ul className="text-sm text-slate-600 space-y-1.5">
+          {[
+            "Selección de ambulancia",
+            "Nombre del conductor",
+            "Fecha del turno (por defecto: hoy)",
+            "Kilometraje inicial",
+            "Observaciones (opcional)"
+          ].map(item => (
+            <li key={item} className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block flex-shrink-0" />
+              {item}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
