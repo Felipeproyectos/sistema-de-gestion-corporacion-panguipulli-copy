@@ -552,7 +552,7 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
   // Pauta completada
   const handlePautaSuccess = (msg) => {
     setPautaActiva(null);
-    onUpdated();
+    onUpdated && onUpdated();
   };
 
   // Configs de pautas

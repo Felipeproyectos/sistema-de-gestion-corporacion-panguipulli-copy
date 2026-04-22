@@ -28,10 +28,19 @@ export default function TurnoChoferForm({ equipos, loading, onSuccess, equipoFij
       km_inicial: Number(form.km_inicial),
       valor_km: Number(form.km_inicial),
     });
-    setSaving(false);
     if (res.data?.ok) {
+      // Registrar también como actividad para que aparezca en Mantenimiento Interno
+      await base44.entities.Actividad.create({
+        equipo_id: form.equipo_id,
+        tipo: "inspeccion_rutinaria",
+        fecha: form.fecha,
+        usuario_nombre: form.conductor,
+        observaciones: form.observaciones || `KM Inicial: ${form.km_inicial}`,
+      });
+      setSaving(false);
       onSuccess("Registro de turno guardado correctamente.");
     } else {
+      setSaving(false);
       setError("Ocurrió un error al guardar. Por favor intenta de nuevo.");
     }
   };
