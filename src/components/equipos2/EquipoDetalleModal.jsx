@@ -10,6 +10,7 @@ import { TIPOS_EQUIPO, ESTADOS_EQUIPO, TIPOS_ACTIVIDAD } from "@/lib/centros";
 import RepuestosTab from "./RepuestosTab";
 import PautaInspeccionSemanal from "@/components/bitacora/PautaInspeccionSemanal";
 import PautaPlaceholder from "@/components/bitacora/PautaPlaceholder";
+import TurnoChoferForm from "@/components/bitacora/TurnoChoferForm";
 import { format, parseISO, differenceInDays } from "date-fns";
 import { generarPDFEquipo } from "@/utils/generarPDFEquipo";
 
@@ -475,6 +476,22 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
         </div>
       )}
 
+      {/* Pauta Diaria ambulancia → TurnoChoferForm */}
+      {pautaActiva === "diaria" && esAmbulancia && (
+        <div className="space-y-2">
+          <button onClick={() => setPautaActiva("selector")}
+            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-1">
+            <ArrowLeft className="w-4 h-4" /> Volver
+          </button>
+          <TurnoChoferForm
+            equipos={[]}
+            loading={false}
+            equipoFijo={equipo}
+            onSuccess={handlePautaSuccess}
+          />
+        </div>
+      )}
+
       {/* Pauta Semanal ambulancia (formulario completo con SVG y checklist) */}
       {pautaActiva === "semanal" && esAmbulancia && (
         <div className="space-y-2">
@@ -490,8 +507,10 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
         </div>
       )}
 
-      {/* Pauta genérica (diaria, anual, o semanal de equipos no-ambulancia) */}
-      {pautaActiva && pautaActiva !== "selector" && !(pautaActiva === "semanal" && esAmbulancia) && (
+      {/* Pauta genérica (diaria/anual para no-ambulancia, o anual para ambulancia) */}
+      {pautaActiva && pautaActiva !== "selector" &&
+        !(pautaActiva === "diaria" && esAmbulancia) &&
+        !(pautaActiva === "semanal" && esAmbulancia) && (
         <div className="space-y-2">
           <button onClick={() => setPautaActiva("selector")}
             className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-1">
@@ -508,87 +527,90 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
         </div>
       )}
 
-      {/* Layout 2 columnas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Columna izquierda */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E2E8F0" }}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-800">Inspecciones Semanales</h3>
-              <span className="text-xs font-bold px-3 py-1 rounded-full"
-                style={{ background: cumplimiento >= 90 ? "#DCFCE7" : "#FEF9C3", color: cumplimiento >= 90 ? "#16A34A" : "#A16207" }}>
-                CUMPLIMIENTO: {cumplimiento}%
+      {/* Resumen rápido */}
+      {esAmbulancia && (
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Pautas Diarias", count: inspecciones.filter(i => i.tipo === "inspeccion_rutinaria").length, color: "#7C3AED", bg: "#F5F3FF" },
+            { label: "Pautas Semanales", count: inspecciones.filter(i => i.tipo === "inspeccion_semanal").length, color: "#2563EB", bg: "#EFF6FF" },
+            { label: "Pautas Anuales", count: inspecciones.filter(i => i.tipo === "inspeccion_anual").length, color: "#059669", bg: "#F0FDF4" },
+          ].map(s => (
+            <div key={s.label} className="rounded-2xl p-4 text-center" style={{ background: s.bg, border: `1px solid ${s.color}22` }}>
+              <p className="text-2xl font-bold" style={{ color: s.color }}>{s.count}</p>
+              <p className="text-xs font-semibold text-slate-500 mt-1">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Historial completo */}
+      <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E2E8F0" }}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-slate-800">Historial de Inspecciones</h3>
+          <span className="text-xs font-bold px-3 py-1 rounded-full"
+            style={{ background: cumplimiento >= 90 ? "#DCFCE7" : "#FEF9C3", color: cumplimiento >= 90 ? "#16A34A" : "#A16207" }}>
+            CUMPLIMIENTO: {cumplimiento}%
+          </span>
+        </div>
+        {inspecciones.length === 0 ? (
+          <EmptyState icon={ClipboardCheck} text="Sin registros de inspección" />
+        ) : (
+          <div className="space-y-2.5">
+            {inspecciones.map(act => (
+              <InspeccionCard key={act.id} act={act} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Certificación y documentos */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E2E8F0" }}>
+          <h3 className="font-bold text-slate-800 mb-4">Certificación Anual</h3>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Vencimiento</span>
+              <span className="font-semibold text-slate-800">
+                {fechaVence ? format(parseISO(fechaVence), "dd MMM yyyy") : "—"}
               </span>
             </div>
-            {inspecciones.length === 0 ? (
-              <EmptyState icon={ClipboardCheck} text="Sin registros de inspección" />
-            ) : (
-              <div className="space-y-2.5">
-                {inspecciones.slice(0, 5).map(act => (
-                  <InspeccionCard key={act.id} act={act} />
-                ))}
-                {inspecciones.length > 5 && (
-                  <p className="text-center text-sm text-blue-600 font-medium pt-2 cursor-pointer hover:underline">
-                    Ver historial completo ({inspecciones.length} registros)
-                  </p>
-                )}
-              </div>
-            )}
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Estado</span>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ color: certBadge.color, background: certBadge.bg }}>
+                {certBadge.label}
+              </span>
+            </div>
+          </div>
+          {diasVence !== null && diasVence <= 90 && (
+            <div className="flex items-center gap-2 p-2.5 mt-3 rounded-xl text-xs"
+              style={{ background: diasVence < 0 ? "#FEF2F2" : "#FFFBEB", color: diasVence < 0 ? "#DC2626" : "#B45309" }}>
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+              {diasVence < 0 ? `Vencida hace ${Math.abs(diasVence)} días` : `Vence en ${diasVence} días`}
+            </div>
+          )}
+          <div className="mt-4 rounded-xl p-3 text-center" style={{ border: "2px dashed #CBD5E1", background: "#F8FAFC" }}>
+            <Upload className="w-5 h-5 text-slate-400 mx-auto mb-1" />
+            <p className="text-xs font-medium text-slate-600 mb-2">Subir certificado</p>
+            <FileUploadButton label="Subir" color="#2563EB" />
           </div>
         </div>
 
-        {/* Columna derecha */}
-        <div className="space-y-4">
-          {/* Certificación Anual */}
-          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E2E8F0" }}>
-            <h3 className="font-bold text-slate-800 mb-4">Certificación Anual</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Vencimiento</span>
-                <span className="font-semibold text-slate-800">
-                  {fechaVence ? format(parseISO(fechaVence), "dd MMM yyyy") : "—"}
-                </span>
+        <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E2E8F0" }}>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Documentos Técnicos</p>
+          {equipo.orden_compra_url && (
+            <a href={equipo.orden_compra_url} target="_blank" rel="noreferrer"
+              className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors mb-3" style={{ border: "1px solid #E2E8F0" }}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "#FEF2F2" }}>
+                <FileText className="w-4 h-4 text-red-500" />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Estado</span>
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ color: certBadge.color, background: certBadge.bg }}>
-                  {certBadge.label}
-                </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-800 truncate">Orden de Compra</p>
+                <p className="text-xs text-slate-400">Documento adjunto</p>
               </div>
-            </div>
-            {diasVence !== null && diasVence <= 90 && (
-              <div className="flex items-center gap-2 p-2.5 mt-3 rounded-xl text-xs"
-                style={{ background: diasVence < 0 ? "#FEF2F2" : "#FFFBEB", color: diasVence < 0 ? "#DC2626" : "#B45309" }}>
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                {diasVence < 0 ? `Vencida hace ${Math.abs(diasVence)} días` : `Vence en ${diasVence} días`}
-              </div>
-            )}
-            <div className="mt-4 rounded-xl p-4 text-center" style={{ border: "2px dashed #CBD5E1", background: "#F8FAFC" }}>
-              <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
-              <p className="text-sm font-medium text-slate-600">Subir nuevo certificado</p>
-              <p className="text-xs text-slate-400 mb-3">PDF, JPG o PNG (Max. 10MB)</p>
-              <FileUploadButton label="Subir Certificado" color="#2563EB" />
-            </div>
-          </div>
-
-          {/* Documentos Técnicos */}
-          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E2E8F0" }}>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Documentos Técnicos</p>
-            {equipo.orden_compra_url && (
-              <a href={equipo.orden_compra_url} target="_blank" rel="noreferrer"
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors mb-3" style={{ border: "1px solid #E2E8F0" }}>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "#FEF2F2" }}>
-                  <FileText className="w-4 h-4 text-red-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-800 truncate">Orden de Compra</p>
-                  <p className="text-xs text-slate-400">Documento adjunto</p>
-                </div>
-                <ExternalLink className="w-4 h-4 text-slate-400 flex-shrink-0" />
-              </a>
-            )}
-            <FileUploadButton label="Subir Documento" color="#2563EB" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
-          </div>
+              <ExternalLink className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            </a>
+          )}
+          <FileUploadButton label="Subir Documento" color="#2563EB" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
         </div>
       </div>
     </div>

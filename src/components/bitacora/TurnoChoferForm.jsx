@@ -2,9 +2,9 @@ import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Loader2, AlertTriangle } from "lucide-react";
 
-export default function TurnoChoferForm({ equipos, loading, onSuccess }) {
+export default function TurnoChoferForm({ equipos, loading, onSuccess, equipoFijo }) {
   const [form, setForm] = useState({
-    equipo_id: "",
+    equipo_id: equipoFijo?.id || "",
     conductor: "",
     fecha: new Date().toISOString().split("T")[0],
     km_inicial: "",
@@ -47,7 +47,12 @@ export default function TurnoChoferForm({ equipos, loading, onSuccess }) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className={labelCls}>Ambulancia *</label>
-          {loading ? (
+          {equipoFijo ? (
+            <div className="p-3 rounded-xl" style={{ background: "#EFF6FF", border: "1px solid #BFDBFE" }}>
+              <p className="text-sm font-semibold text-blue-900">{equipoFijo.marca} {equipoFijo.modelo}{equipoFijo.patente ? ` — ${equipoFijo.patente}` : ""}</p>
+              <p className="text-xs text-blue-600 mt-0.5">{equipoFijo.centro_principal}{equipoFijo.subsede ? ` · ${equipoFijo.subsede}` : ""}</p>
+            </div>
+          ) : loading ? (
             <div className="flex items-center gap-2 text-sm text-slate-400 py-3">
               <Loader2 className="w-4 h-4 animate-spin" /> Cargando equipos...
             </div>
@@ -56,14 +61,14 @@ export default function TurnoChoferForm({ equipos, loading, onSuccess }) {
               onChange={e => setForm(f => ({ ...f, equipo_id: e.target.value }))}
               className={inputCls}>
               <option value="">Selecciona una ambulancia...</option>
-              {equipos.map(eq => (
+              {(equipos || []).map(eq => (
                 <option key={eq.id} value={eq.id}>
                   {eq.marca} {eq.modelo}{eq.patente ? ` — ${eq.patente}` : ""} ({eq.centro_principal})
                 </option>
               ))}
             </select>
           )}
-          {equipo && (
+          {!equipoFijo && equipo && (
             <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
               {equipo.centro_principal}{equipo.subsede ? ` · ${equipo.subsede}` : ""}
