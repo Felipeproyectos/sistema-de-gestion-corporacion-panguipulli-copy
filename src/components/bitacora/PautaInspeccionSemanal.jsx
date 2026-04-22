@@ -77,13 +77,15 @@ const VIEWS = [
 
 function initChecklist(items) {
   return items.reduce((acc, item) => {
-    acc[item] = { estado: "bueno", obs: "" };
+    acc[item] = { estado: "", obs: "" };
     return acc;
   }, {});
 }
 
 function ChecklistSection({ title, icon: Icon, color, items, data, onChange, expanded, onToggle }) {
   const badCount = items.filter(i => data[i]?.estado === "malo").length;
+  const pendingCount = items.filter(i => !data[i]?.estado).length;
+
   return (
     <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
       <button type="button" onClick={onToggle}
@@ -95,11 +97,19 @@ function ChecklistSection({ title, icon: Icon, color, items, data, onChange, exp
           </div>
           <div className="text-left">
             <p className="font-bold text-slate-800" style={{ fontFamily: "Manrope, sans-serif" }}>{title}</p>
-            <p className="text-xs text-slate-400">{items.length} ítems{badCount > 0 ? ` · ${badCount} con falla` : ""}</p>
+            <p className="text-xs text-slate-400">
+              {items.length} ítems
+              {pendingCount > 0 ? ` · ${pendingCount} sin revisar` : badCount > 0 ? ` · ${badCount} con falla` : " · Completo ✓"}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {badCount > 0 && (
+          {pendingCount > 0 && (
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: "#FFF7ED", color: "#C2410C" }}>
+              {pendingCount} pend.
+            </span>
+          )}
+          {pendingCount === 0 && badCount > 0 && (
             <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: "#FEF2F2", color: "#DC2626" }}>
               {badCount} malo{badCount > 1 ? "s" : ""}
             </span>
@@ -110,38 +120,43 @@ function ChecklistSection({ title, icon: Icon, color, items, data, onChange, exp
 
       {expanded && (
         <div className="divide-y divide-slate-50">
-          {items.map(item => (
-            <div key={item} className="px-5 py-3.5">
-              <div className="flex items-center justify-between gap-3 mb-2">
-                <span className="text-sm font-semibold text-slate-700" style={{ fontFamily: "Manrope, sans-serif" }}>{item}</span>
-                <div className="flex gap-2 flex-shrink-0">
-                  {["bueno", "malo"].map(val => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => onChange(item, "estado", val)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-                      style={data[item]?.estado === val
-                        ? val === "bueno"
-                          ? { background: "#10B981", color: "white" }
-                          : { background: "#EF4444", color: "white" }
-                        : { background: "#F1F5F9", color: "#64748B" }
-                      }>
-                      {val === "bueno" ? "Bueno" : "Malo"}
-                    </button>
-                  ))}
+          {items.map(item => {
+            const estado = data[item]?.estado;
+            const missing = !estado;
+            return (
+              <div key={item} className="px-5 py-3.5 space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-semibold text-slate-700 flex items-center gap-1.5" style={{ fontFamily: "Manrope, sans-serif" }}>
+                    {missing && <span className="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block flex-shrink-0" />}
+                    {item}
+                  </span>
+                  <select
+                    value={estado}
+                    onChange={e => onChange(item, "estado", e.target.value)}
+                    className="text-xs font-bold rounded-xl px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-blue-200 flex-shrink-0"
+                    style={
+                      !estado
+                        ? { background: "#FFF7ED", color: "#C2410C", borderColor: "#FED7AA" }
+                        : estado === "bueno"
+                        ? { background: "#F0FDF4", color: "#16A34A", borderColor: "#BBF7D0" }
+                        : { background: "#FEF2F2", color: "#DC2626", borderColor: "#FECACA" }
+                    }>
+                    <option value="" disabled>Seleccionar *</option>
+                    <option value="bueno">✓ Bueno</option>
+                    <option value="malo">✗ Malo</option>
+                  </select>
                 </div>
+                <textarea
+                  rows={2}
+                  placeholder="Observaciones (obligatorio si está malo)..."
+                  value={data[item]?.obs || ""}
+                  onChange={e => onChange(item, "obs", e.target.value)}
+                  className="w-full text-xs px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all resize-none"
+                  style={{ fontFamily: "Manrope, sans-serif" }}
+                />
               </div>
-              <input
-                type="text"
-                placeholder="Observaciones..."
-                value={data[item]?.obs || ""}
-                onChange={e => onChange(item, "obs", e.target.value)}
-                className="w-full text-xs px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all"
-                style={{ fontFamily: "Manrope, sans-serif" }}
-              />
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -316,7 +331,6 @@ export default function PautaInspeccionSemanal({ equipos, onSuccess }) {
     conductor: "",
     fecha: new Date().toISOString().split("T")[0],
     km_inicial: "",
-    km_final: "",
     combustible: "1/2",
   });
 
@@ -369,21 +383,21 @@ export default function PautaInspeccionSemanal({ equipos, onSuccess }) {
       }).join("; ")}`);
     }
     if (form.km_inicial) lines.push(`KM Inicial: ${form.km_inicial}`);
-    if (form.km_final) lines.push(`KM Final: ${form.km_final}`);
     lines.push(`Combustible: ${form.combustible}`);
     return lines.join(" | ");
   };
 
   const handleSubmit = async () => {
-    if (!form.equipo_id || !form.conductor || !form.km_inicial) {
-      setError("Completa los campos obligatorios.");
+    const allItems = { ...luces, ...motor, ...accesorios, ...documentos };
+    const pendientes = Object.values(allItems).filter(v => !v.estado).length;
+    if (pendientes > 0) {
+      setError(`Debes revisar todos los ítems. Faltan ${pendientes} sin estado.`);
       return;
     }
     setError("");
     setSaving(true);
 
     const observaciones = buildObservaciones();
-    const allItems = { ...luces, ...motor, ...accesorios, ...documentos };
     const hasFallas = Object.values(allItems).some(v => v.estado === "malo");
 
     await base44.entities.Actividad.create({
@@ -394,7 +408,7 @@ export default function PautaInspeccionSemanal({ equipos, onSuccess }) {
       observaciones,
     });
 
-    // También guardar el kilometraje
+    // Guardar kilometraje — cierra el turno anterior y abre uno nuevo
     const kmInicial = Number(form.km_inicial);
     const activos = await base44.entities.Kilometraje.filter({ equipo_id: form.equipo_id });
     const activo = activos.find(r => !r.km_final);
@@ -407,7 +421,6 @@ export default function PautaInspeccionSemanal({ equipos, onSuccess }) {
       conductor: form.conductor,
       valor_km: kmInicial,
       km_inicial: kmInicial,
-      ...(form.km_final ? { km_final: Number(form.km_final) } : {}),
       observaciones,
     });
 
@@ -492,23 +505,14 @@ export default function PautaInspeccionSemanal({ equipos, onSuccess }) {
                 className="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-300" />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">KM Inicial *</label>
-                <input
-                  type="number" min="0" placeholder="45230"
-                  value={form.km_inicial}
-                  onChange={e => setForm(f => ({ ...f, km_inicial: e.target.value }))}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">KM Final</label>
-                <input
-                  type="number" min="0" placeholder="45500"
-                  value={form.km_final}
-                  onChange={e => setForm(f => ({ ...f, km_final: e.target.value }))}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-              </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">KM Inicial *</label>
+              <input
+                type="number" min="0" placeholder="45230"
+                value={form.km_inicial}
+                onChange={e => setForm(f => ({ ...f, km_inicial: e.target.value }))}
+                className="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+              <p className="text-xs text-slate-400 mt-1">El KM final lo registrará el próximo conductor.</p>
             </div>
           </div>
 
