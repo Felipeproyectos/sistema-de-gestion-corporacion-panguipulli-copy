@@ -323,11 +323,12 @@ function DamageModal({ zone, data, onSave, onClose }) {
   );
 }
 
-export default function PautaInspeccionSemanal({ equipos, onSuccess }) {
+// equipoFijo: si se pasa, se usa ese equipo directamente y no se muestra el selector
+export default function PautaInspeccionSemanal({ equipos, onSuccess, equipoFijo }) {
   const [step, setStep] = useState(1);
 
   const [form, setForm] = useState({
-    equipo_id: "",
+    equipo_id: equipoFijo?.id || "",
     conductor: "",
     fecha: new Date().toISOString().split("T")[0],
     km_inicial: "",
@@ -466,27 +467,35 @@ export default function PautaInspeccionSemanal({ equipos, onSuccess }) {
           <div className="bg-white rounded-2xl p-5 space-y-4" style={{ border: "1px solid #E2E8F0" }}>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Datos del Conductor</p>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Ambulancia *</label>
-              <select
-                required
-                value={form.equipo_id}
-                onChange={e => setForm(f => ({ ...f, equipo_id: e.target.value }))}
-                className="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                <option value="">Selecciona una ambulancia...</option>
-                {equipos.map(eq => (
-                  <option key={eq.id} value={eq.id}>
-                    {eq.marca} {eq.modelo}{eq.patente ? ` — ${eq.patente}` : ""} ({eq.centro_principal})
-                  </option>
-                ))}
-              </select>
-              {equipo && (
-                <p className="text-xs text-blue-600 mt-1.5 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                  {equipo.centro_principal}{equipo.subsede ? ` · ${equipo.subsede}` : ""}
-                </p>
-              )}
-            </div>
+            {equipoFijo ? (
+              <div className="p-3 rounded-xl" style={{ background: "#EFF6FF", border: "1px solid #BFDBFE" }}>
+                <p className="text-xs font-bold text-blue-500 uppercase tracking-widest mb-0.5">Equipo</p>
+                <p className="text-sm font-semibold text-blue-900">{equipoFijo.marca} {equipoFijo.modelo}{equipoFijo.patente ? ` — ${equipoFijo.patente}` : ""}</p>
+                <p className="text-xs text-blue-600 mt-0.5">{equipoFijo.centro_principal}{equipoFijo.subsede ? ` · ${equipoFijo.subsede}` : ""}</p>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Ambulancia *</label>
+                <select
+                  required
+                  value={form.equipo_id}
+                  onChange={e => setForm(f => ({ ...f, equipo_id: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                  <option value="">Selecciona una ambulancia...</option>
+                  {(equipos || []).map(eq => (
+                    <option key={eq.id} value={eq.id}>
+                      {eq.marca} {eq.modelo}{eq.patente ? ` — ${eq.patente}` : ""} ({eq.centro_principal})
+                    </option>
+                  ))}
+                </select>
+                {equipo && (
+                  <p className="text-xs text-blue-600 mt-1.5 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                    {equipo.centro_principal}{equipo.subsede ? ` · ${equipo.subsede}` : ""}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nombre del Chofer *</label>

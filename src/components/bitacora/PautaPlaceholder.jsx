@@ -6,8 +6,8 @@ import { Loader2, AlertTriangle, ClipboardCheck, Send } from "lucide-react";
  * Formulario genérico para pautas aún no implementadas.
  * Guarda la inspección en Actividad + HistorialMantenimiento para sincronizar con mantenciones internas.
  */
-export default function PautaPlaceholder({ categoria, pauta, equipos, loading, onSuccess }) {
-  const [equipo_id, setEquipoId] = useState("");
+export default function PautaPlaceholder({ categoria, pauta, equipos, loading, onSuccess, equipoFijo }) {
+  const [equipo_id, setEquipoId] = useState(equipoFijo?.id || "");
   const [responsable, setResponsable] = useState("");
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [resultado, setResultado] = useState("");
@@ -75,23 +75,28 @@ export default function PautaPlaceholder({ categoria, pauta, equipos, loading, o
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className={labelCls}>Equipo *</label>
-          {loading ? (
+          {equipoFijo ? (
+            <div className="p-3 rounded-xl" style={{ background: "#EFF6FF", border: "1px solid #BFDBFE" }}>
+              <p className="text-sm font-semibold text-blue-900">{equipoFijo.marca} {equipoFijo.modelo}{equipoFijo.patente ? ` — ${equipoFijo.patente}` : ""}{equipoFijo.numero_serie ? ` · S/N: ${equipoFijo.numero_serie}` : ""}</p>
+              <p className="text-xs text-blue-600 mt-0.5">{equipoFijo.centro_principal}{equipoFijo.subsede ? ` · ${equipoFijo.subsede}` : ""}</p>
+            </div>
+          ) : loading ? (
             <div className="flex items-center gap-2 text-sm text-slate-400 py-3">
               <Loader2 className="w-4 h-4 animate-spin" /> Cargando equipos...
             </div>
-          ) : equipos.length === 0 ? (
+          ) : (equipos || []).length === 0 ? (
             <p className="text-xs text-amber-600 py-2">No hay equipos de esta categoría disponibles.</p>
           ) : (
             <select required value={equipo_id} onChange={e => setEquipoId(e.target.value)} className={inputCls}>
               <option value="">Selecciona un equipo...</option>
-              {equipos.map(eq => (
+              {(equipos || []).map(eq => (
                 <option key={eq.id} value={eq.id}>
                   {eq.marca} {eq.modelo}{eq.numero_serie ? ` — S/N: ${eq.numero_serie}` : ""} ({eq.centro_principal})
                 </option>
               ))}
             </select>
           )}
-          {equipo && (
+          {!equipoFijo && equipo && (
             <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
               {equipo.centro_principal}{equipo.subsede ? ` · ${equipo.subsede}` : ""}

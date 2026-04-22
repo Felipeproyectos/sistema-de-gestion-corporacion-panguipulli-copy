@@ -4,10 +4,12 @@ import {
   X, Edit, Trash2, Plus, Info, Wrench, ClipboardCheck, Package, BookOpen,
   MapPin, Calendar, User, Upload, AlertTriangle, Activity, Car, Zap, Monitor,
   Hash, Gauge, FileText, Download, Shield, CheckCircle, Clock, ArrowLeft,
-  Loader2, ExternalLink, Printer, ChevronDown
+  Loader2, ExternalLink, Printer, ChevronDown, ChevronRight
 } from "lucide-react";
 import { TIPOS_EQUIPO, ESTADOS_EQUIPO, TIPOS_ACTIVIDAD } from "@/lib/centros";
 import RepuestosTab from "./RepuestosTab";
+import PautaInspeccionSemanal from "@/components/bitacora/PautaInspeccionSemanal";
+import PautaPlaceholder from "@/components/bitacora/PautaPlaceholder";
 import { format, parseISO, differenceInDays } from "date-fns";
 import { generarPDFEquipo } from "@/utils/generarPDFEquipo";
 
@@ -386,41 +388,12 @@ function MantenimientoTab({ equipo, actividades, user, onUpdated }) {
    INSPECCIONES TAB
 ══════════════════════════════════════════════ */
 function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    tipo: "inspeccion_semanal",
-    fecha: new Date().toISOString().split("T")[0],
-    observaciones: "",
-    usuario_nombre: user?.full_name || "",
-    archivo_url: ""
-  });
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [verDetalleId, setVerDetalleId] = useState(null);
-  const fileRef = useRef();
+  // null = cerrado, "selector" = eligiendo tipo, "diaria"|"semanal"|"anual" = pauta abierta
+  const [pautaActiva, setPautaActiva] = useState(null);
 
   const inspecciones = actividades
     .filter(a => ["inspeccion", "error_calibracion", "inspeccion_semanal", "inspeccion_anual", "inspeccion_rutinaria", "incidente"].includes(a.tipo))
     .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setForm(f => ({ ...f, archivo_url: file_url }));
-    setUploading(false);
-  };
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    await base44.entities.Actividad.create({ ...form, equipo_id: equipo.id });
-    setSaving(false);
-    setShowForm(false);
-    setForm(f => ({ ...f, archivo_url: "", usuario_nombre: user?.full_name || "" }));
-    onUpdated();
-  };
 
   const totalInsp = inspecciones.length;
   const cumplimiento = totalInsp === 0 ? 100 : Math.round((inspecciones.filter(i => ["inspeccion","inspeccion_semanal","inspeccion_anual"].includes(i.tipo)).length / totalInsp) * 100);
@@ -436,6 +409,24 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
     vencida: { label: "VENCIDA", color: "#DC2626", bg: "#FEF2F2" }
   }[estadoCert] || { label: "SIN DATOS", color: "#94A3B8", bg: "#F8FAFC" };
 
+  const esAmbulancia = equipo.tipo === "ambulancia";
+
+  // Pauta completada
+  const handlePautaSuccess = (msg) => {
+    setPautaActiva(null);
+    onUpdated();
+  };
+
+  // Configs de pautas
+  const TIPOS_PAUTA = [
+    { id: "diaria", label: "Pauta Diaria", desc: "Revisión rápida al inicio del turno", color: "#7C3AED", bg: "#F5F3FF", tipoActividad: "inspeccion_rutinaria" },
+    { id: "semanal", label: "Pauta Semanal", desc: "Inspección completa: luces, motor, accesorios y documentos", color: "#2563EB", bg: "#EFF6FF", tipoActividad: "inspeccion_semanal" },
+    { id: "anual", label: "Pauta Anual", desc: "Revisión técnica anual completa", color: "#059669", bg: "#F0FDF4", tipoActividad: "inspeccion_anual" },
+  ];
+
+  const pautaInfo = TIPOS_PAUTA.find(p => p.id === pautaActiva);
+  const categoriaParaPlaceholder = { label: equipo.tipo?.replace(/_/g, " "), color: "#2563EB", bg: "#EFF6FF" };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -444,69 +435,76 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
           <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Gestión de Calidad y Seguridad</p>
           <h2 className="text-xl font-bold text-slate-900">Historial de Inspección</h2>
         </div>
-        <button onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-          style={{ background: "#2563EB" }}>
-          <Plus className="w-4 h-4" /> Nuevo Reporte
-        </button>
+        {!pautaActiva && (
+          <button onClick={() => setPautaActiva("selector")}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+            style={{ background: "#2563EB" }}>
+            <Plus className="w-4 h-4" /> Nuevo Reporte
+          </button>
+        )}
       </div>
 
-      {/* Formulario */}
-      {showForm && (
-        <div className="bg-white p-5 rounded-2xl space-y-3" style={{ border: "1px solid #E2E8F0" }}>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nueva Inspección</p>
-          <form onSubmit={handleSave} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-slate-600 block mb-1">Tipo</label>
-                <select className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" style={{ borderColor: "#E2E8F0" }}
-                  value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}>
-                  <option value="inspeccion_semanal">Inspección Semanal</option>
-                  <option value="inspeccion_anual">Inspección Anual</option>
-                  <option value="incidente">Incidente</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-slate-600 block mb-1">Fecha</label>
-                <input type="date" required className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" style={{ borderColor: "#E2E8F0" }}
-                  value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} />
-              </div>
-            </div>
+      {/* Selector de tipo de pauta */}
+      {pautaActiva === "selector" && (
+        <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #E2E8F0" }}>
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div>
-              <label className="text-xs font-medium text-slate-600 block mb-1">Responsable</label>
-              <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" style={{ borderColor: "#E2E8F0" }}
-                value={form.usuario_nombre} onChange={e => setForm(f => ({ ...f, usuario_nombre: e.target.value }))} />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Seleccionar tipo de pauta</p>
+              <p className="text-sm text-slate-600 mt-0.5">{equipo.marca} {equipo.modelo}</p>
             </div>
-            <div>
-              <label className="text-xs font-medium text-slate-600 block mb-1">Observaciones</label>
-              <textarea rows={2} className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none" style={{ borderColor: "#E2E8F0" }}
-                value={form.observaciones} onChange={e => setForm(f => ({ ...f, observaciones: e.target.value }))} />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-slate-600 block mb-1">Adjuntar Documento</label>
-              <input ref={fileRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleFile} />
-              {form.archivo_url ? (
-                <div className="flex items-center gap-2 p-3 rounded-xl" style={{ background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span className="text-xs text-green-700 font-medium flex-1">Archivo cargado</span>
-                  <a href={form.archivo_url} target="_blank" rel="noreferrer" className="text-xs text-green-700 underline flex items-center gap-1">Ver <ExternalLink className="w-3 h-3" /></a>
-                  <button type="button" onClick={() => setForm(f => ({ ...f, archivo_url: "" }))} className="text-slate-400 hover:text-red-400"><X className="w-3.5 h-3.5" /></button>
+            <button onClick={() => setPautaActiva(null)} className="text-slate-400 hover:text-slate-600">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="p-4 space-y-2">
+            {TIPOS_PAUTA.map(tp => (
+              <button key={tp.id} onClick={() => setPautaActiva(tp.id)}
+                className="w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all hover:shadow-md"
+                style={{ border: `1px solid ${tp.color}33`, background: tp.bg }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${tp.color}20` }}>
+                  <ClipboardCheck className="w-5 h-5" style={{ color: tp.color }} />
                 </div>
-              ) : (
-                <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-                  className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-medium"
-                  style={{ border: "2px dashed #CBD5E1", color: "#64748B", background: "#F8FAFC" }}>
-                  {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Subiendo...</> : <><Upload className="w-4 h-4" /> Seleccionar PDF o Word</>}
-                </button>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <button type="submit" disabled={saving || uploading} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "#2563EB" }}>
-                {saving ? "Guardando..." : "Guardar Inspección"}
+                <div className="flex-1">
+                  <p className="font-bold text-slate-800">{tp.label}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{tp.desc}</p>
+                </div>
+                <ChevronDown className="w-4 h-4 text-slate-400 -rotate-90 flex-shrink-0" />
               </button>
-              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
-            </div>
-          </form>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Pauta Semanal ambulancia (formulario completo con SVG y checklist) */}
+      {pautaActiva === "semanal" && esAmbulancia && (
+        <div className="space-y-2">
+          <button onClick={() => setPautaActiva("selector")}
+            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-1">
+            <ArrowLeft className="w-4 h-4" /> Volver
+          </button>
+          <PautaInspeccionSemanal
+            equipos={[]}
+            equipoFijo={equipo}
+            onSuccess={handlePautaSuccess}
+          />
+        </div>
+      )}
+
+      {/* Pauta genérica (diaria, anual, o semanal de equipos no-ambulancia) */}
+      {pautaActiva && pautaActiva !== "selector" && !(pautaActiva === "semanal" && esAmbulancia) && (
+        <div className="space-y-2">
+          <button onClick={() => setPautaActiva("selector")}
+            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-1">
+            <ArrowLeft className="w-4 h-4" /> Volver
+          </button>
+          <PautaPlaceholder
+            categoria={categoriaParaPlaceholder}
+            pauta={pautaInfo}
+            equipos={[]}
+            loading={false}
+            equipoFijo={equipo}
+            onSuccess={handlePautaSuccess}
+          />
         </div>
       )}
 
