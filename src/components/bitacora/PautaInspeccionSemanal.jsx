@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   CheckCircle, Loader2, AlertTriangle, ChevronDown, ChevronUp,
-  Send, Fuel, Car, Zap, Wrench, Package, FileText
+  Send, Fuel, Car, Zap, Wrench, Package, FileText, Camera, X, Plus
 } from "lucide-react";
 
 const NIVEL_COMBUSTIBLE = ["E", "1/4", "1/2", "3/4", "F"];
@@ -24,13 +24,55 @@ const ITEMS_DOCUMENTOS = [
   "Permiso de Circulación", "Revisión Técnica", "Seguro Obligatorio"
 ];
 
-const DAMAGE_ZONES = [
-  { id: "frontal", label: "Frontal" },
-  { id: "trasera", label: "Trasera" },
-  { id: "lateral_izq", label: "Lateral Izq." },
-  { id: "lateral_der", label: "Lateral Der." },
-  { id: "techo", label: "Techo" },
-  { id: "inferior", label: "Inferior" },
+// Zonas del diagrama SVG con posiciones relativas para cada vista
+const VIEWS = [
+  {
+    id: "lateral_izq",
+    label: "Lateral Izquierdo",
+    zones: [
+      { id: "frontal_lat_izq", label: "Frontal", x: 8, y: 25, w: 18, h: 50 },
+      { id: "puerta_delantera_izq", label: "Puerta Delantera", x: 28, y: 15, w: 22, h: 65 },
+      { id: "puerta_trasera_izq", label: "Puerta Trasera", x: 52, y: 15, w: 22, h: 65 },
+      { id: "trasera_lat_izq", label: "Trasera", x: 76, y: 25, w: 18, h: 50 },
+      { id: "techo_izq", label: "Techo", x: 15, y: 5, w: 70, h: 12 },
+      { id: "rueda_del_izq", label: "Rueda Del.", x: 20, y: 78, w: 15, h: 18 },
+      { id: "rueda_tra_izq", label: "Rueda Tra.", x: 62, y: 78, w: 15, h: 18 },
+    ]
+  },
+  {
+    id: "lateral_der",
+    label: "Lateral Derecho",
+    zones: [
+      { id: "frontal_lat_der", label: "Frontal", x: 8, y: 25, w: 18, h: 50 },
+      { id: "puerta_delantera_der", label: "Puerta Delantera", x: 28, y: 15, w: 22, h: 65 },
+      { id: "puerta_trasera_der", label: "Puerta Trasera", x: 52, y: 15, w: 22, h: 65 },
+      { id: "trasera_lat_der", label: "Trasera", x: 76, y: 25, w: 18, h: 50 },
+      { id: "techo_der", label: "Techo", x: 15, y: 5, w: 70, h: 12 },
+      { id: "rueda_del_der", label: "Rueda Del.", x: 20, y: 78, w: 15, h: 18 },
+      { id: "rueda_tra_der", label: "Rueda Tra.", x: 62, y: 78, w: 15, h: 18 },
+    ]
+  },
+  {
+    id: "frontal",
+    label: "Vista Frontal",
+    zones: [
+      { id: "parabrisas_frontal", label: "Parabrisas", x: 20, y: 15, w: 60, h: 25 },
+      { id: "capo", label: "Capó", x: 15, y: 42, w: 70, h: 20 },
+      { id: "parachoque_frontal", label: "Parachoque", x: 15, y: 64, w: 70, h: 16 },
+      { id: "faro_izq", label: "Faro Izq.", x: 5, y: 42, w: 12, h: 20 },
+      { id: "faro_der", label: "Faro Der.", x: 83, y: 42, w: 12, h: 20 },
+    ]
+  },
+  {
+    id: "trasera",
+    label: "Vista Trasera",
+    zones: [
+      { id: "puerta_trasera_doble", label: "Puertas Traseras", x: 15, y: 15, w: 70, h: 55 },
+      { id: "parachoque_trasero", label: "Parachoque Trasero", x: 15, y: 72, w: 70, h: 15 },
+      { id: "faro_trasero_izq", label: "Faro Tra. Izq.", x: 5, y: 20, w: 12, h: 25 },
+      { id: "faro_trasero_der", label: "Faro Tra. Der.", x: 83, y: 20, w: 12, h: 25 },
+    ]
+  }
 ];
 
 function initChecklist(items) {
@@ -106,8 +148,168 @@ function ChecklistSection({ title, icon: Icon, color, items, data, onChange, exp
   );
 }
 
+// SVG ambulancia por vista
+function AmbulanceSVG({ view, danos, onZoneClick }) {
+  const isLateral = view.id === "lateral_izq" || view.id === "lateral_der";
+  const isFrontal = view.id === "frontal";
+
+  return (
+    <svg viewBox="0 0 100 100" className="w-full" style={{ maxHeight: 200 }}>
+      {/* Carrocería principal */}
+      {isLateral && <>
+        <rect x="10" y="18" width="80" height="55" rx="3" fill="#F0F4FF" stroke="#1A365D" strokeWidth="1.5" />
+        {/* Cabina */}
+        <rect x="10" y="10" width="30" height="20" rx="2" fill="#E0E7FF" stroke="#1A365D" strokeWidth="1.2" />
+        {/* Ventana cabina */}
+        <rect x="13" y="12" width="24" height="12" rx="1" fill="#BAE6FD" stroke="#1A365D" strokeWidth="0.8" />
+        {/* Ventanas traseras */}
+        <rect x="43" y="20" width="20" height="15" rx="1" fill="#BAE6FD" stroke="#1A365D" strokeWidth="0.8" />
+        <rect x="65" y="20" width="18" height="15" rx="1" fill="#BAE6FD" stroke="#1A365D" strokeWidth="0.8" />
+        {/* Ruedas */}
+        <circle cx="26" cy="76" r="8" fill="#334155" stroke="#1A365D" strokeWidth="1" />
+        <circle cx="26" cy="76" r="4" fill="#64748B" />
+        <circle cx="72" cy="76" r="8" fill="#334155" stroke="#1A365D" strokeWidth="1" />
+        <circle cx="72" cy="76" r="4" fill="#64748B" />
+        {/* Barra luces */}
+        <rect x="15" y="7" width="70" height="5" rx="1" fill="#EF4444" stroke="#1A365D" strokeWidth="0.8" />
+        {/* Cruz */}
+        <rect x="52" y="28" width="12" height="4" rx="0.5" fill="#16A34A" />
+        <rect x="55" y="25" width="4" height="10" rx="0.5" fill="#16A34A" />
+        {/* Texto AMBULANCIA */}
+        <text x="50" y="53" textAnchor="middle" fontSize="4" fill="#1A365D" fontWeight="bold" fontFamily="sans-serif">AMBULANCIA</text>
+      </>}
+
+      {isFrontal && <>
+        <rect x="10" y="12" width="80" height="75" rx="3" fill="#F0F4FF" stroke="#1A365D" strokeWidth="1.5" />
+        {/* Parabrisas */}
+        <rect x="20" y="16" width="60" height="24" rx="2" fill="#BAE6FD" stroke="#1A365D" strokeWidth="1" />
+        {/* Faros */}
+        <rect x="10" y="38" width="14" height="16" rx="1" fill="#FEF9C3" stroke="#1A365D" strokeWidth="1" />
+        <rect x="76" y="38" width="14" height="16" rx="1" fill="#FEF9C3" stroke="#1A365D" strokeWidth="1" />
+        {/* Capó */}
+        <rect x="15" y="42" width="70" height="22" rx="1" fill="#E0E7FF" stroke="#1A365D" strokeWidth="0.8" />
+        {/* Parachoque */}
+        <rect x="12" y="66" width="76" height="14" rx="2" fill="#CBD5E1" stroke="#1A365D" strokeWidth="1" />
+        {/* Cruz */}
+        <rect x="45" y="46" width="10" height="3" rx="0.5" fill="#16A34A" />
+        <rect x="48" y="43" width="3" height="9" rx="0.5" fill="#16A34A" />
+        {/* Barra luces */}
+        <rect x="15" y="8" width="70" height="6" rx="1" fill="#EF4444" stroke="#1A365D" strokeWidth="0.8" />
+      </>}
+
+      {view.id === "trasera" && <>
+        <rect x="10" y="12" width="80" height="75" rx="3" fill="#F0F4FF" stroke="#1A365D" strokeWidth="1.5" />
+        {/* Puertas traseras */}
+        <rect x="14" y="14" width="35" height="58" rx="1" fill="#E0E7FF" stroke="#1A365D" strokeWidth="1" />
+        <rect x="51" y="14" width="35" height="58" rx="1" fill="#E0E7FF" stroke="#1A365D" strokeWidth="1" />
+        {/* Ventanas */}
+        <rect x="18" y="18" width="26" height="22" rx="1" fill="#BAE6FD" stroke="#1A365D" strokeWidth="0.8" />
+        <rect x="56" y="18" width="26" height="22" rx="1" fill="#BAE6FD" stroke="#1A365D" strokeWidth="0.8" />
+        {/* Faros traseros */}
+        <rect x="10" y="20" width="6" height="24" rx="1" fill="#EF4444" stroke="#1A365D" strokeWidth="0.8" />
+        <rect x="84" y="20" width="6" height="24" rx="1" fill="#EF4444" stroke="#1A365D" strokeWidth="0.8" />
+        {/* Parachoque */}
+        <rect x="12" y="74" width="76" height="12" rx="2" fill="#CBD5E1" stroke="#1A365D" strokeWidth="1" />
+      </>}
+
+      {/* Zonas clickeables */}
+      {view.zones.map(z => {
+        const active = danos[z.id]?.marcado;
+        return (
+          <rect
+            key={z.id}
+            x={z.x} y={z.y} width={z.w} height={z.h}
+            rx="1"
+            fill={active ? "rgba(239,68,68,0.35)" : "rgba(37,99,235,0)"}
+            stroke={active ? "#EF4444" : "rgba(37,99,235,0.15)"}
+            strokeWidth={active ? "1.5" : "1"}
+            strokeDasharray={active ? "none" : "2,2"}
+            className="cursor-pointer transition-all"
+            onClick={() => onZoneClick(z)}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+function DamageModal({ zone, data, onSave, onClose }) {
+  const fileRef = useRef();
+  const [desc, setDesc] = useState(data?.descripcion || "");
+  const [fotoUrl, setFotoUrl] = useState(data?.foto_url || "");
+  const [uploading, setUploading] = useState(false);
+
+  const handleFoto = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setFotoUrl(file_url);
+    setUploading(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+      <div className="bg-white w-full max-w-md rounded-3xl p-6 space-y-4" style={{ boxShadow: "0 -8px 40px rgba(0,0,0,0.2)" }}>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-red-500 uppercase tracking-widest">Zona Dañada</p>
+            <p className="font-bold text-slate-800 text-lg">{zone.label}</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 text-slate-400 hover:bg-slate-200">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-slate-600 block mb-1.5">Descripción del daño *</label>
+          <textarea
+            rows={3}
+            placeholder="Ej: Abolladura en puerta delantera, rayón profundo..."
+            value={desc}
+            onChange={e => setDesc(e.target.value)}
+            className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-red-200 resize-none"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-slate-600 block mb-1.5">Foto del daño (opcional)</label>
+          <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFoto} />
+          {fotoUrl ? (
+            <div className="relative">
+              <img src={fotoUrl} alt="daño" className="w-full h-32 object-cover rounded-xl" />
+              <button onClick={() => setFotoUrl("")}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold border-2 border-dashed border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-500 transition-all">
+              {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Subiendo...</> : <><Camera className="w-4 h-4" /> Tomar / subir foto</>}
+            </button>
+          )}
+        </div>
+
+        <div className="flex gap-3 pt-1">
+          <button onClick={onClose} className="flex-1 py-3 rounded-xl text-sm font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50">
+            Cancelar
+          </button>
+          <button
+            disabled={!desc.trim()}
+            onClick={() => onSave(zone.id, { marcado: true, descripcion: desc, foto_url: fotoUrl })}
+            className="flex-1 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50"
+            style={{ background: "#EF4444" }}>
+            Marcar Daño
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PautaInspeccionSemanal({ equipos, onSuccess }) {
-  const [step, setStep] = useState(1); // 1: datos básicos, 2: daños, 3: checklists, 4: resumen
+  const [step, setStep] = useState(1);
 
   const [form, setForm] = useState({
     equipo_id: "",
@@ -118,7 +320,9 @@ export default function PautaInspeccionSemanal({ equipos, onSuccess }) {
     combustible: "1/2",
   });
 
-  const [danos, setDanos] = useState({});
+  const [danos, setDanos] = useState({});  // { zoneId: { marcado, descripcion, foto_url } }
+  const [activeView, setActiveView] = useState("lateral_izq");
+  const [selectedZone, setSelectedZone] = useState(null);
   const [luces, setLuces] = useState(initChecklist(ITEMS_LUCES));
   const [motor, setMotor] = useState(initChecklist(ITEMS_MOTOR));
   const [accesorios, setAccesorios] = useState(initChecklist(ITEMS_ACCESORIOS));
@@ -156,8 +360,14 @@ export default function PautaInspeccionSemanal({ equipos, onSuccess }) {
         }).join(", ")}`);
       }
     });
-    const danosList = Object.entries(danos).filter(([, v]) => v).map(([k]) => k);
-    if (danosList.length > 0) lines.push(`Daños reportados: ${danosList.join(", ")}`);
+    const allZones = VIEWS.flatMap(v => v.zones);
+    const danosList = Object.entries(danos).filter(([, v]) => v?.marcado);
+    if (danosList.length > 0) {
+      lines.push(`Daños reportados: ${danosList.map(([k, v]) => {
+        const zone = allZones.find(z => z.id === k);
+        return `${zone?.label || k}: ${v.descripcion}`;
+      }).join("; ")}`);
+    }
     if (form.km_inicial) lines.push(`KM Inicial: ${form.km_inicial}`);
     if (form.km_final) lines.push(`KM Final: ${form.km_final}`);
     lines.push(`Combustible: ${form.combustible}`);
@@ -346,37 +556,92 @@ export default function PautaInspeccionSemanal({ equipos, onSuccess }) {
       {/* PASO 2: Registro de daños */}
       {step === 2 && (
         <div className="space-y-3">
-          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E2E8F0" }}>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-              <Car className="w-4 h-4 text-blue-500" /> Registro de Daños Visuales
-            </p>
-            <p className="text-xs text-slate-400 mb-4">Selecciona las zonas donde se detectaron daños</p>
+          <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #E2E8F0" }}>
+            <div className="px-5 pt-5 pb-3">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5 flex items-center gap-2">
+                <Car className="w-4 h-4 text-blue-500" /> Registro de Daños Visuales
+              </p>
+              <p className="text-xs text-slate-400">Selecciona una vista y toca la zona dañada para registrar el daño</p>
+            </div>
 
-            {/* Diagrama ambulancia simplificado */}
-            <div className="rounded-2xl overflow-hidden mb-4" style={{ background: "#F0F4FF", border: "2px dashed #C7D2FE" }}>
-              <div className="p-4 text-center">
-                <Car className="w-16 h-16 text-blue-300 mx-auto mb-2" />
-                <p className="text-xs text-blue-400 font-medium">Toca las zonas para marcar daños</p>
+            {/* Selector de vistas */}
+            <div className="flex gap-1.5 px-4 pb-3 overflow-x-auto">
+              {VIEWS.map(v => {
+                const hasDano = v.zones.some(z => danos[z.id]?.marcado);
+                return (
+                  <button key={v.id} type="button"
+                    onClick={() => setActiveView(v.id)}
+                    className="flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                    style={activeView === v.id
+                      ? { background: "#1A365D", color: "white" }
+                      : { background: "#F1F5F9", color: "#475569", border: "1px solid #E2E8F0" }}>
+                    {hasDano && <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />}
+                    {v.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Diagrama SVG interactivo */}
+            <div className="px-4 pb-2" style={{ background: "#F8FAFC" }}>
+              <div className="rounded-2xl p-3 relative" style={{ background: "white", border: "1px solid #E2E8F0" }}>
+                <p className="text-xs text-slate-400 text-center mb-2 font-medium">
+                  Toca las zonas punteadas para marcar daños
+                </p>
+                {VIEWS.filter(v => v.id === activeView).map(view => (
+                  <AmbulanceSVG
+                    key={view.id}
+                    view={view}
+                    danos={danos}
+                    onZoneClick={(zone) => {
+                      if (danos[zone.id]?.marcado) {
+                        // Si ya está marcado, desmarcar
+                        setDanos(prev => { const n = { ...prev }; delete n[zone.id]; return n; });
+                      } else {
+                        setSelectedZone(zone);
+                      }
+                    }}
+                  />
+                ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
-              {DAMAGE_ZONES.map(z => (
-                <button key={z.id} type="button"
-                  onClick={() => setDanos(prev => ({ ...prev, [z.id]: !prev[z.id] }))}
-                  className="py-3 rounded-xl text-xs font-bold transition-all"
-                  style={danos[z.id]
-                    ? { background: "#FEF2F2", color: "#DC2626", border: "2px solid #FECACA" }
-                    : { background: "#F8FAFC", color: "#64748B", border: "1px solid #E2E8F0" }}>
-                  {danos[z.id] ? "⚠ " : ""}{z.label}
-                </button>
-              ))}
-            </div>
-            {Object.values(danos).some(v => v) && (
-              <p className="text-xs text-red-500 mt-3 font-medium flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5" />
-                Daños marcados: {Object.entries(danos).filter(([, v]) => v).map(([k]) => DAMAGE_ZONES.find(z => z.id === k)?.label).join(", ")}
-              </p>
+            {/* Lista de daños marcados */}
+            {Object.keys(danos).filter(k => danos[k]?.marcado).length > 0 && (
+              <div className="px-4 pb-4 pt-2 space-y-2">
+                <p className="text-xs font-bold text-red-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  Daños registrados ({Object.keys(danos).filter(k => danos[k]?.marcado).length})
+                </p>
+                {Object.entries(danos).filter(([, v]) => v?.marcado).map(([zoneId, data]) => {
+                  const allZones = VIEWS.flatMap(v => v.zones);
+                  const zone = allZones.find(z => z.id === zoneId);
+                  return (
+                    <div key={zoneId} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: "#FEF2F2", border: "1px solid #FECACA" }}>
+                      {data.foto_url && (
+                        <img src={data.foto_url} alt="daño" className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-red-700">{zone?.label || zoneId}</p>
+                        <p className="text-xs text-slate-600 mt-0.5">{data.descripcion}</p>
+                      </div>
+                      <button type="button"
+                        onClick={() => setDanos(prev => { const n = { ...prev }; delete n[zoneId]; return n; })}
+                        className="text-slate-400 hover:text-red-500 flex-shrink-0 mt-0.5">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {Object.keys(danos).filter(k => danos[k]?.marcado).length === 0 && (
+              <div className="px-4 pb-4">
+                <p className="text-xs text-green-600 font-medium flex items-center gap-1.5 p-3 rounded-xl" style={{ background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
+                  <CheckCircle className="w-3.5 h-3.5" /> Sin daños registrados en esta inspección
+                </p>
+              </div>
             )}
           </div>
 
@@ -392,6 +657,19 @@ export default function PautaInspeccionSemanal({ equipos, onSuccess }) {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Modal daño */}
+      {selectedZone && (
+        <DamageModal
+          zone={selectedZone}
+          data={danos[selectedZone.id]}
+          onClose={() => setSelectedZone(null)}
+          onSave={(zoneId, data) => {
+            setDanos(prev => ({ ...prev, [zoneId]: data }));
+            setSelectedZone(null);
+          }}
+        />
       )}
 
       {/* PASO 3: Checklists */}
