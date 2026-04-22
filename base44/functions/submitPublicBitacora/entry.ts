@@ -11,11 +11,25 @@ Deno.serve(async (req) => {
       return Response.json({ error: "Faltan campos obligatorios" }, { status: 400 });
     }
 
+    const kmInicial = Number(km_inicial);
+
+    // Cerrar turnos activos (sin km_final) de la misma ambulancia
+    const registros = await base44.asServiceRole.entities.Kilometraje.filter({ equipo_id });
+    const activos = registros.filter(r => !r.km_final && r.km_final !== 0);
+
+    for (const turno of activos) {
+      await base44.asServiceRole.entities.Kilometraje.update(turno.id, {
+        km_final: kmInicial,
+        valor_km: kmInicial - (turno.km_inicial || 0)
+      });
+    }
+
+    // Crear nuevo registro
     await base44.asServiceRole.entities.Kilometraje.create({
       equipo_id,
       conductor,
       fecha,
-      km_inicial: Number(km_inicial),
+      km_inicial: kmInicial,
       valor_km: Number(valor_km || km_inicial),
       observaciones: observaciones || ""
     });
