@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { Upload, Loader2, Save, Settings, Users, Shield, Mail, UserPlus, Trash2, Edit2, X, Check, AlertTriangle, Car, ExternalLink, Copy, CheckCircle } from "lucide-react";
+import { Upload, Loader2, Save, Settings, Users, Shield, Mail, UserPlus, Trash2, Edit2, X, Check, AlertTriangle, Car, ExternalLink, Copy, CheckCircle, Download } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function Configuracion() {
   const [user, setUser]     = useState(null);
@@ -291,12 +292,34 @@ export default function Configuracion() {
 
 function BitacoraPublicaLink() {
   const [copied, setCopied] = useState(false);
+  const qrRef = useRef(null);
   const url = `${window.location.origin}/bitacora-publica`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleDownloadQR = () => {
+    const svg = qrRef.current?.querySelector("svg");
+    if (!svg) return;
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement("canvas");
+    canvas.width = 300;
+    canvas.height = 300;
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    img.onload = () => {
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, 300, 300);
+      ctx.drawImage(img, 0, 0, 300, 300);
+      const a = document.createElement("a");
+      a.download = "qr-bitacora.png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    };
+    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
   };
 
   return (
@@ -308,7 +331,7 @@ function BitacoraPublicaLink() {
       <div className="rounded-2xl p-5 space-y-2" style={{ background: "#EFF6FF", border: "1px solid #BFDBFE" }}>
         <p className="text-sm font-semibold text-blue-800">¿Para qué sirve este enlace?</p>
         <p className="text-sm text-blue-700">
-          Permite a los conductores registrar su asignación y kilometraje de forma directa, <strong>sin necesidad de tener una cuenta</strong> en el sistema. Comparte este enlace con los conductores y los registros quedarán guardados automáticamente en la bitácora de cada ambulancia.
+          Permite a los conductores registrar su asignación y kilometraje de forma directa, <strong>sin necesidad de tener una cuenta</strong> en el sistema. Comparte este enlace o el código QR con los conductores.
         </p>
       </div>
 
@@ -330,22 +353,22 @@ function BitacoraPublicaLink() {
         </div>
       </div>
 
-      <div className="rounded-xl p-4" style={{ background: "#F8FAFC", border: "1px solid #E2E8F0" }}>
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">Los conductores podrán ingresar:</p>
-        <ul className="text-sm text-slate-600 space-y-1.5">
-          {[
-            "Selección de ambulancia",
-            "Nombre del conductor",
-            "Fecha del turno (por defecto: hoy)",
-            "Kilometraje inicial",
-            "Observaciones (opcional)"
-          ].map(item => (
-            <li key={item} className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block flex-shrink-0" />
-              {item}
-            </li>
-          ))}
-        </ul>
+      {/* Código QR */}
+      <div>
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">Código QR</p>
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          <div ref={qrRef} className="p-4 bg-white border-2 border-slate-200 rounded-2xl shadow-sm">
+            <QRCodeSVG value={url} size={180} bgColor="#ffffff" fgColor="#1e293b" level="H" />
+          </div>
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600">Escanea este código QR con la cámara del celular para acceder directamente al formulario de la bitácora.</p>
+            <button onClick={handleDownloadQR}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
+              style={{ background: "#2563EB" }}>
+              <Download className="w-4 h-4" /> Descargar QR
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
