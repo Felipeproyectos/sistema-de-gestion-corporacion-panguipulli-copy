@@ -325,13 +325,13 @@ function BitacoraPublicaLink() {
   return (
     <div className="bg-white rounded-3xl shadow-lg p-8 space-y-5">
       <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-        <Car className="w-5 h-5 text-blue-500" /> Formulario Público — Bitácora de Conductores
+        <Car className="w-5 h-5 text-blue-500" /> Formulario Público — Pautas de Inspección
       </h2>
 
       <div className="rounded-2xl p-5 space-y-2" style={{ background: "#EFF6FF", border: "1px solid #BFDBFE" }}>
         <p className="text-sm font-semibold text-blue-800">¿Para qué sirve este enlace?</p>
         <p className="text-sm text-blue-700">
-          Permite a los conductores registrar su asignación y kilometraje de forma directa, <strong>sin necesidad de tener una cuenta</strong> en el sistema. Comparte este enlace o el código QR con los conductores.
+          Permite a los <strong>profesionales y conductores</strong> completar sus pautas de inspección de equipos de forma online, <strong>sin necesidad de tener una cuenta</strong> en el sistema. Incluye pautas semanales para ambulancias, desfibriladores y monitores multiparámetros. Comparte este enlace o el código QR con el equipo.
         </p>
       </div>
 
@@ -361,7 +361,7 @@ function BitacoraPublicaLink() {
             <QRCodeSVG value={url} size={180} bgColor="#ffffff" fgColor="#1e293b" level="H" />
           </div>
           <div className="space-y-3">
-            <p className="text-sm text-slate-600">Escanea este código QR con la cámara del celular para acceder directamente al formulario de la bitácora.</p>
+            <p className="text-sm text-slate-600">Escanea este código QR con la cámara del celular para acceder directamente al formulario de pautas de inspección.</p>
             <button onClick={handleDownloadQR}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
               style={{ background: "#2563EB" }}>
