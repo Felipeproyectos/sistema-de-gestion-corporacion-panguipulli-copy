@@ -13,6 +13,7 @@ import PautaPlaceholder from "@/components/bitacora/PautaPlaceholder";
 import TurnoChoferForm from "@/components/bitacora/TurnoChoferForm";
 import PautaSemanalDesfibrilador from "@/components/bitacora/PautaSemanalDesfibrilador";
 import PautaSemanalMultiparametros from "@/components/bitacora/PautaSemanalMultiparametros";
+import PautaDiariaAmbulancia from "@/components/bitacora/PautaDiariaAmbulancia";
 import { format, parseISO, differenceInDays } from "date-fns";
 import { generarPDFEquipo } from "@/utils/generarPDFEquipo";
 
@@ -530,6 +531,8 @@ function MantenimientoTab({ equipo, actividades, user, onUpdated }) {
 function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
   // null = cerrado, "selector" = eligiendo tipo, "diaria"|"semanal"|"anual" = pauta abierta
   const [pautaActiva, setPautaActiva] = useState(null);
+  // Para pauta diaria: "inicio" | "termino"
+  const [momentoDiario, setMomentoDiario] = useState(null);
 
   const inspecciones = actividades
     .filter(a => ["inspeccion", "error_calibracion", "inspeccion_semanal", "inspeccion_anual", "inspeccion_rutinaria", "incidente"].includes(a.tipo))
@@ -554,12 +557,13 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
   // Pauta completada
   const handlePautaSuccess = (msg) => {
     setPautaActiva(null);
+    setMomentoDiario(null);
     onUpdated && onUpdated();
   };
 
   // Configs de pautas
   const TIPOS_PAUTA = [
-    { id: "diaria", label: "Pauta Diaria", desc: "Revisión rápida al inicio del turno", color: "#7C3AED", bg: "#F5F3FF", tipoActividad: "inspeccion_rutinaria" },
+    { id: "diaria", label: "Pauta Diaria", desc: "Inspección completa al inicio o término de turno — 6 secciones", color: "#7C3AED", bg: "#F5F3FF", tipoActividad: "inspeccion_rutinaria" },
     { id: "semanal", label: "Pauta Semanal", desc: "Inspección completa: luces, motor, accesorios y documentos", color: "#2563EB", bg: "#EFF6FF", tipoActividad: "inspeccion_semanal" },
     { id: "anual", label: "Pauta Anual", desc: "Revisión técnica anual completa", color: "#059669", bg: "#F0FDF4", tipoActividad: "inspeccion_anual" },
   ];
@@ -615,18 +619,58 @@ function InspeccionesTab({ equipo, actividades, user, onUpdated }) {
         </div>
       )}
 
-      {/* Pauta Diaria ambulancia → TurnoChoferForm */}
-      {pautaActiva === "diaria" && esAmbulancia && (
-        <div className="space-y-2">
+      {/* Pauta Diaria ambulancia → Selector de momento */}
+      {pautaActiva === "diaria" && esAmbulancia && !momentoDiario && (
+        <div className="space-y-3">
           <button onClick={() => setPautaActiva("selector")}
+            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700">
+            <ArrowLeft className="w-4 h-4" /> Volver
+          </button>
+          <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #E2E8F0" }}>
+            <div className="px-5 py-4 border-b border-slate-100">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Seleccionar momento</p>
+              <p className="text-sm text-slate-600 mt-0.5">¿Cuándo se realiza esta inspección?</p>
+            </div>
+            <div className="p-4 grid grid-cols-2 gap-3">
+              <button onClick={() => setMomentoDiario("inicio")}
+                className="flex flex-col items-center gap-3 p-5 rounded-xl text-left transition-all hover:shadow-md"
+                style={{ border: "1px solid #BFDBFE", background: "#EFF6FF" }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "#DBEAFE" }}>
+                  <CheckCircle className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-slate-800">Inicio de Turno</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Antes del turno</p>
+                </div>
+              </button>
+              <button onClick={() => setMomentoDiario("termino")}
+                className="flex flex-col items-center gap-3 p-5 rounded-xl text-left transition-all hover:shadow-md"
+                style={{ border: "1px solid #A7F3D0", background: "#ECFDF5" }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "#D1FAE5" }}>
+                  <CheckCircle className="w-6 h-6 text-emerald-600" />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-slate-800">Término de Turno</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Después del turno</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pauta Diaria ambulancia → Formulario por momento */}
+      {pautaActiva === "diaria" && esAmbulancia && momentoDiario && (
+        <div className="space-y-2">
+          <button onClick={() => setMomentoDiario(null)}
             className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-1">
             <ArrowLeft className="w-4 h-4" /> Volver
           </button>
-          <TurnoChoferForm
-            equipos={[]}
-            loading={false}
+          <PautaDiariaAmbulancia
             equipoFijo={equipo}
-            onSuccess={handlePautaSuccess}
+            equipos={[]}
+            momento={momentoDiario}
+            onSuccess={(result) => { setMomentoDiario(null); handlePautaSuccess(result); }}
           />
         </div>
       )}
@@ -822,20 +866,20 @@ function InspeccionCard({ act }) {
     : null;
 
   const esSemanal = act.tipo === "inspeccion_semanal";
+  const esDiaria = act.tipo === "inspeccion_rutinaria";
 
   const handleToggle = async () => {
     const next = !expanded;
     setExpanded(next);
-    // Si es pauta semanal, buscar los datos completos del formulario
-    if (next && esSemanal && !inspeccionData) {
+    // Si es pauta semanal o diaria, buscar los datos completos del formulario
+    if (next && (esSemanal || esDiaria) && !inspeccionData) {
       setLoadingData(true);
       try {
-        // Buscar en InspeccionPendiente por equipo_id y fecha
+        const tipoFiltro = esSemanal ? "inspeccion_semanal" : "inspeccion_diaria";
         const pendientes = await base44.entities.InspeccionPendiente.filter({
           equipo_id: act.equipo_id,
-          tipo_formulario: "inspeccion_semanal",
+          tipo_formulario: tipoFiltro,
         });
-        // Encontrar el que coincida mejor con fecha y conductor
         const match = pendientes.find(p =>
           p.fecha === act.fecha && p.conductor === act.usuario_nombre
         ) || pendientes.find(p => p.fecha === act.fecha) || null;
@@ -902,6 +946,77 @@ function InspeccionCard({ act }) {
         <div className="border-t border-slate-100 px-4 py-3 space-y-3" style={{ background: "#FAFBFC" }}>
           {loadingData && (
             <p className="text-xs text-slate-400 text-center py-2">Cargando datos del formulario...</p>
+          )}
+
+          {/* Vista completa del formulario diario */}
+          {esDiaria && inspeccionData && (
+            <div className="space-y-2">
+              {/* Momento */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold px-3 py-1.5 rounded-xl"
+                  style={inspeccionData.momento === "inicio"
+                    ? { background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }
+                    : { background: "#ECFDF5", color: "#059669", border: "1px solid #A7F3D0" }}>
+                  {inspeccionData.momento === "inicio" ? "🌅 Inicio de Turno" : "🌆 Término de Turno"}
+                </span>
+                {inspeccionData.conductor && (
+                  <span className="text-xs font-semibold text-slate-600 flex items-center gap-1">
+                    <User className="w-3 h-3" /> {inspeccionData.conductor}
+                  </span>
+                )}
+              </div>
+
+              {/* Secciones */}
+              {["exterior","interior","equipos_medicos","accesorios","limpieza","documentacion"].map(secId => {
+                const LABELS = {
+                  exterior: "Revisión Exterior", interior: "Revisión Interior",
+                  equipos_medicos: "Equipos Médicos", accesorios: "Accesorios",
+                  limpieza: "Limpieza Básica", documentacion: "Documentación"
+                };
+                const ICONS = {
+                  exterior: "🚗", interior: "🔧", equipos_medicos: "🏥",
+                  accesorios: "📦", limpieza: "🧹", documentacion: "📄"
+                };
+                const cl = inspeccionData.checklist || {};
+                const claves = Object.keys(cl).filter(k => k.startsWith(`${secId}__`));
+                const incorrectos = claves.filter(k => cl[k]?.estado === "incorrecto");
+                return (
+                  <div key={secId} className="rounded-xl overflow-hidden" style={{ border: "1px solid #E2E8F0" }}>
+                    <div className="flex items-center justify-between px-3 py-2"
+                      style={{ background: incorrectos.length > 0 ? "#FFF5F5" : "#F8FAFC" }}>
+                      <span className="text-xs font-bold text-slate-600">{ICONS[secId]} {LABELS[secId]}</span>
+                      {incorrectos.length > 0
+                        ? <span className="text-xs font-bold text-red-600">{incorrectos.length} incorrecto(s)</span>
+                        : <span className="text-xs text-green-600 font-semibold">✓ Todo correcto</span>
+                      }
+                    </div>
+                    {incorrectos.length > 0 && (
+                      <div className="px-3 py-2 space-y-1">
+                        {incorrectos.map(k => (
+                          <div key={k} className="text-xs flex items-start gap-1.5">
+                            <span className="text-red-400 flex-shrink-0">✗</span>
+                            <span className="font-semibold text-red-700">{k.replace(`${secId}__`, "")}</span>
+                            {cl[k]?.obs && <span className="text-red-500"> — {cl[k].obs}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Observaciones generales */}
+              {(inspeccionData.problemasDetectados || inspeccionData.accionesTomadas) && (
+                <div className="rounded-xl p-3 space-y-1.5" style={{ background: "#FFFBEB", border: "1px solid #FDE68A" }}>
+                  {inspeccionData.problemasDetectados && (
+                    <p className="text-xs text-slate-700"><span className="font-bold text-amber-700">Problemas:</span> {inspeccionData.problemasDetectados}</p>
+                  )}
+                  {inspeccionData.accionesTomadas && (
+                    <p className="text-xs text-slate-700"><span className="font-bold text-amber-700">Acciones:</span> {inspeccionData.accionesTomadas}</p>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           {/* Vista completa del formulario semanal */}
@@ -1013,7 +1128,7 @@ function InspeccionCard({ act }) {
           )}
 
           {/* Sin datos de formulario */}
-          {esSemanal && !loadingData && !inspeccionData && (
+          {(esSemanal || esDiaria) && !loadingData && !inspeccionData && (
             <p className="text-xs text-slate-400 italic text-center py-1">
               Datos detallados no disponibles para este registro.
             </p>
