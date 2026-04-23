@@ -197,9 +197,20 @@ export default function EquipoFormModal({ equipo, onClose, onSaved, user }) {
             </div>
           </>)}
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-semibold text-slate-600 block mb-1">Año Adquisición</label>
+              <input type="number" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" value={form.anio_adquisicion} onChange={e => set("anio_adquisicion", e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-600 block mb-1">Fecha de Fabricación</label>
+              <input type="date" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" value={form.fecha_fabricacion || ""} onChange={e => set("fecha_fabricacion", e.target.value)} />
+            </div>
+          </div>
+
           <div>
-            <label className="text-xs font-semibold text-slate-600 block mb-1">Año Adquisición</label>
-            <input type="number" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" value={form.anio_adquisicion} onChange={e => set("anio_adquisicion", e.target.value)} />
+            <label className="text-xs font-semibold text-slate-600 block mb-1">Proveedor</label>
+            <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" placeholder="Empresa o persona que vendió el equipo..." value={form.proveedor || ""} onChange={e => set("proveedor", e.target.value)} />
           </div>
 
           <div>

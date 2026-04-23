@@ -28,6 +28,15 @@
     "anio_adquisicion": {
       "type": "number"
     },
+    "fecha_fabricacion": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de fabricaci\u00f3n del equipo"
+    },
+    "proveedor": {
+      "type": "string",
+      "description": "Empresa o persona que vendi\u00f3 el equipo"
+    },
     "estado": {
       "type": "string",
       "enum": [

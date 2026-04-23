@@ -308,6 +308,8 @@ function InfoTab({ equipo }) {
           {[
             ["N° Serie", equipo.numero_serie],
             ["Año Adquisición", equipo.anio_adquisicion],
+            ["Fecha Fabricación", equipo.fecha_fabricacion ? format(parseISO(equipo.fecha_fabricacion), "dd/MM/yyyy") : null],
+            ["Proveedor", equipo.proveedor],
             ["Responsable", equipo.responsable || equipo.conductor_responsable],
             ...(batDias !== null ? [["Batería vence", format(parseISO(equipo.fecha_vencimiento_bateria), "dd/MM/yyyy")]] : []),
             ...(equipo.patente ? [["Patente", equipo.patente]] : [])
