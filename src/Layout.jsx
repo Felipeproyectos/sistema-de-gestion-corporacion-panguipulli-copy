@@ -47,7 +47,7 @@ export default function Layout({ children, currentPageName }) {
   { label: "Reportes", page: "Reportes", icon: FileText, adminOnly: false },
   { label: "Historial", page: "Historial", icon: History, adminOnly: true },
   { label: "Configuración", page: "Configuracion", icon: Settings, adminOnly: true },
-  { label: "Revisión Bitácora", page: "RevisionInspecciones", icon: ClipboardList, adminOnly: true }];
+  { label: "Revisión Bitácora", page: "RevisionInspecciones", icon: ClipboardList, adminOnly: false }];
 
 
   const visibleItems = navItems.filter((i) => !i.adminOnly || isAdmin);

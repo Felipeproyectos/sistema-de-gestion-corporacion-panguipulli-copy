@@ -416,17 +416,7 @@ export default function RevisionInspecciones() {
 
   useEffect(() => { cargar(); }, []);
 
-  if (user && user.role !== "admin") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center p-8">
-          <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-3" />
-          <p className="font-bold text-slate-700">Acceso restringido</p>
-          <p className="text-sm text-slate-400 mt-1">Solo administradores pueden revisar inspecciones.</p>
-        </div>
-      </div>
-    );
-  }
+
 
   const filtradas = inspecciones.filter(i => filtro === "todos" || i.estado === filtro);
   const pendientes = inspecciones.filter(i => i.estado === "pendiente").length;
