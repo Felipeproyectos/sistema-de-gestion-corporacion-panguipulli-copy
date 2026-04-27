@@ -78,152 +78,320 @@ function normalizarEstablecimiento(nombre) {
 
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-// ── Generadores de HTML ──────────────────────────────────────────────────────
+// ── Generadores de HTML profesional ─────────────────────────────────────────
+
+function formatFecha(str) {
+  if (!str) return '-';
+  return str.split('-').reverse().join('/');
+}
+
+function ahora() {
+  return new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago', dateStyle: 'long', timeStyle: 'short' });
+}
 
 function estilosBase() {
   return `<style>
-    body { font-family: Arial, sans-serif; font-size: 13px; color: #1a202c; margin: 30px; }
-    h1 { font-size: 20px; color: #1d4ed8; border-bottom: 2px solid #1d4ed8; padding-bottom: 8px; }
-    h2 { font-size: 15px; color: #374151; margin-top: 20px; margin-bottom: 6px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
-    h3 { font-size: 13px; color: #6b7280; margin: 14px 0 4px 0; }
-    .meta { background: #f3f4f6; border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
-    .meta-row { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 4px; }
-    .meta-label { font-weight: bold; color: #374151; min-width: 140px; }
-    .ok { color: #16a34a; font-weight: bold; }
-    .falla { color: #dc2626; font-weight: bold; }
-    table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-    th { background: #1d4ed8; color: white; padding: 6px 10px; text-align: left; font-size: 12px; }
-    td { padding: 5px 10px; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
-    tr:nth-child(even) td { background: #f9fafb; }
-    .badge-ok { background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
-    .badge-falla { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
-    .badge-na { background: #f3f4f6; color: #6b7280; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
-    .aprobado { background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; padding: 10px 14px; margin-top: 16px; }
-    .footer { margin-top: 30px; font-size: 11px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+    @page { margin: 24mm 20mm; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #1a202c; margin: 0; padding: 0; }
+
+    /* ── Encabezado ── */
+    .header { background: #1d4ed8; color: white; padding: 18px 24px 14px; border-radius: 0 0 6px 6px; margin-bottom: 20px; }
+    .header-title { font-size: 20px; font-weight: bold; letter-spacing: 0.5px; margin: 0 0 2px 0; }
+    .header-sub { font-size: 12px; opacity: 0.85; margin: 0; }
+    .header-meta { display: flex; gap: 32px; margin-top: 10px; font-size: 11px; opacity: 0.9; }
+
+    /* ── Tarjetas de responsables ── */
+    .resp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+    .resp-card { border-radius: 6px; padding: 12px 14px; }
+    .resp-card.realizador { background: #eff6ff; border: 1px solid #bfdbfe; }
+    .resp-card.aprobador  { background: #f0fdf4; border: 1px solid #86efac; }
+    .resp-card .rc-title { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+    .resp-card.realizador .rc-title { color: #1d4ed8; }
+    .resp-card.aprobador  .rc-title { color: #16a34a; }
+    .resp-card .rc-name { font-size: 13px; font-weight: bold; color: #111827; margin-bottom: 2px; }
+    .resp-card .rc-detail { font-size: 11px; color: #6b7280; }
+
+    /* ── Equipo info ── */
+    .equipo-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; }
+    .equipo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; }
+    .eq-row { display: flex; gap: 6px; align-items: baseline; }
+    .eq-label { font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase; white-space: nowrap; }
+    .eq-val { font-size: 12px; color: #1e293b; }
+
+    /* ── Secciones ── */
+    .section-title { font-size: 13px; font-weight: bold; color: #1d4ed8; margin: 18px 0 6px 0;
+                     border-bottom: 2px solid #bfdbfe; padding-bottom: 4px; }
+
+    /* ── Tablas de checklist ── */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+    thead th { background: #1e40af; color: white; padding: 6px 10px; font-size: 11px; text-align: left; }
+    tbody td { padding: 5px 10px; font-size: 11px; border-bottom: 1px solid #e2e8f0; }
+    tbody tr:nth-child(even) td { background: #f8fafc; }
+
+    /* ── Badges ── */
+    .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 10px; font-weight: bold; }
+    .b-ok    { background: #dcfce7; color: #166534; }
+    .b-falla { background: #fee2e2; color: #991b1b; }
+    .b-na    { background: #f1f5f9; color: #64748b; }
+
+    /* ── Obs / notas ── */
+    .obs-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 10px 14px;
+               font-size: 11px; color: #78350f; margin: 8px 0 14px 0; white-space: pre-wrap; }
+
+    /* ── Daños ── */
+    .dano-row { background: #fff7ed; border-left: 3px solid #fb923c; padding: 5px 10px; margin-bottom: 4px;
+                font-size: 11px; color: #7c2d12; border-radius: 0 4px 4px 0; }
+
+    /* ── Resumen resultado ── */
+    .resultado-box { display: flex; align-items: center; gap: 10px; border-radius: 6px; padding: 12px 16px; margin-top: 20px; }
+    .resultado-box.aprobado { background: #f0fdf4; border: 1.5px solid #86efac; }
+    .resultado-box.observaciones { background: #fffbeb; border: 1.5px solid #fde68a; }
+    .resultado-icon { font-size: 22px; }
+    .resultado-texto { font-size: 11px; color: #374151; }
+    .resultado-texto strong { font-size: 13px; display: block; color: #111827; margin-bottom: 2px; }
+
+    /* ── Footer ── */
+    .footer { margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 8px;
+              font-size: 10px; color: #94a3b8; text-align: center; }
+    .page-break { page-break-before: always; }
   </style>`;
 }
 
+function tarjetasResponsables(insp, revisor) {
+  const fechaInsp = formatFecha(insp.fecha);
+  const fechaRev  = formatFecha(insp.fecha_revision);
+  const horaGen   = ahora();
+  return `
+  <div class="resp-grid">
+    <div class="resp-card realizador">
+      <div class="rc-title">Realizado por</div>
+      <div class="rc-name">${insp.conductor || '—'}</div>
+      <div class="rc-detail">Fecha de realización: <strong>${fechaInsp}</strong></div>
+      ${insp.km_inicial ? `<div class="rc-detail">KM inicial: <strong>${Number(insp.km_inicial).toLocaleString('es-CL')}</strong></div>` : ''}
+      ${insp.combustible ? `<div class="rc-detail">Combustible: <strong>${insp.combustible}</strong></div>` : ''}
+    </div>
+    <div class="resp-card aprobador">
+      <div class="rc-title">Aprobado por</div>
+      <div class="rc-name">${revisor.full_name || revisor.email}</div>
+      <div class="rc-detail">Email: <strong>${revisor.email}</strong></div>
+      <div class="rc-detail">Fecha de aprobación: <strong>${fechaRev}</strong></div>
+      <div class="rc-detail">Registro generado: <strong>${horaGen}</strong></div>
+    </div>
+  </div>`;
+}
+
+function infoEquipo(equipo, insp) {
+  const tipoLabel = TIPO_EQUIPO_CATEGORIA[equipo.tipo] || equipo.tipo || '-';
+  return `
+  <div class="equipo-card">
+    <div class="equipo-grid">
+      <div class="eq-row"><span class="eq-label">Equipo</span><span class="eq-val">${insp.equipo_label || insp.equipo_id || '-'}</span></div>
+      <div class="eq-row"><span class="eq-label">Tipo</span><span class="eq-val">${tipoLabel}</span></div>
+      <div class="eq-row"><span class="eq-label">Marca / Modelo</span><span class="eq-val">${equipo.marca || '-'} ${equipo.modelo || ''}</span></div>
+      <div class="eq-row"><span class="eq-label">N° Serie</span><span class="eq-val">${equipo.numero_serie || '-'}</span></div>
+      <div class="eq-row"><span class="eq-label">Establecimiento</span><span class="eq-val">${equipo.centro_principal || '-'}</span></div>
+      ${equipo.subsede ? `<div class="eq-row"><span class="eq-label">Subsede</span><span class="eq-val">${equipo.subsede}</span></div>` : ''}
+      ${equipo.patente ? `<div class="eq-row"><span class="eq-label">Patente</span><span class="eq-val">${equipo.patente}</span></div>` : ''}
+      ${equipo.numero_inventario ? `<div class="eq-row"><span class="eq-label">N° Inventario</span><span class="eq-val">${equipo.numero_inventario}</span></div>` : ''}
+    </div>
+  </div>`;
+}
+
+function tablaChecklist(titulo, items, mapEstado) {
+  if (!items || Object.keys(items).length === 0) return '';
+  let html = `<div class="section-title">${titulo}</div>
+  <table>
+    <thead><tr><th style="width:50%">Ítem</th><th style="width:20%">Estado</th><th>Observación</th></tr></thead>
+    <tbody>`;
+  for (const [item, v] of Object.entries(items)) {
+    const { badge, label } = mapEstado(v?.estado);
+    html += `<tr>
+      <td>${item}</td>
+      <td><span class="badge ${badge}">${label}</span></td>
+      <td>${v?.obs || '—'}</td>
+    </tr>`;
+  }
+  html += `</tbody></table>`;
+  return html;
+}
+
+function mapEstadoBueno(estado) {
+  if (estado === 'bueno')  return { badge: 'b-ok',    label: 'OK' };
+  if (estado === 'malo')   return { badge: 'b-falla', label: 'FALLA' };
+  if (estado === 'n/a')    return { badge: 'b-na',    label: 'N/A' };
+  return { badge: 'b-na', label: estado || '—' };
+}
+
+function mapEstadoCorrecto(estado) {
+  if (estado === 'correcto')   return { badge: 'b-ok',    label: 'OK' };
+  if (estado === 'incorrecto') return { badge: 'b-falla', label: 'FALLA' };
+  if (estado === 'n/a')        return { badge: 'b-na',    label: 'N/A' };
+  return { badge: 'b-na', label: estado || '—' };
+}
+
 function htmlInspeccion(insp, revisor) {
-  const datos = (() => { try { return insp.datos_json ? JSON.parse(insp.datos_json) : {}; } catch { return {}; } })();
+  const datos  = (() => { try { return insp.datos_json ? JSON.parse(insp.datos_json) : {}; } catch { return {}; } })();
   const equipo = datos.equipo || {};
   const tipoLabel = TIPO_FORMULARIO_LABEL[insp.tipo_formulario] || insp.tipo_formulario;
-  const fecha = insp.fecha ? insp.fecha.split('-').reverse().join('/') : '-';
-  const fechaRevision = insp.fecha_revision ? insp.fecha_revision.split('-').reverse().join('/') : '-';
 
-  let html = `<!DOCTYPE html><html><head><meta charset="utf-8">${estilosBase()}</head><body>`;
-  html += `<h1>📋 ${tipoLabel}</h1>`;
-  html += `<div class="meta">
-    <div class="meta-row"><span class="meta-label">Equipo:</span><span>${insp.equipo_label || insp.equipo_id}</span></div>
-    <div class="meta-row"><span class="meta-label">Tipo Equipo:</span><span>${TIPO_EQUIPO_CATEGORIA[equipo.tipo] || equipo.tipo || '-'}</span></div>
-    <div class="meta-row"><span class="meta-label">Centro:</span><span>${equipo.centro_principal || '-'}${equipo.subsede ? ' · ' + equipo.subsede : ''}</span></div>
-    ${equipo.patente ? `<div class="meta-row"><span class="meta-label">Patente:</span><span>${equipo.patente}</span></div>` : ''}
-    ${insp.conductor ? `<div class="meta-row"><span class="meta-label">Conductor/Responsable:</span><span>${insp.conductor}</span></div>` : ''}
-    <div class="meta-row"><span class="meta-label">Fecha Inspección:</span><span>${fecha}</span></div>
-    ${insp.km_inicial ? `<div class="meta-row"><span class="meta-label">KM Inicial:</span><span>${Number(insp.km_inicial).toLocaleString('es-CL')}</span></div>` : ''}
-    ${insp.combustible ? `<div class="meta-row"><span class="meta-label">Combustible:</span><span>${insp.combustible}</span></div>` : ''}
+  // ── Contar fallas para el resumen ──
+  let totalItems = 0, totalFallas = 0;
+  function contarFallas(seccion, estadoFalla) {
+    if (!datos[seccion]) return;
+    for (const v of Object.values(datos[seccion])) {
+      totalItems++;
+      if (v?.estado === estadoFalla) totalFallas++;
+    }
+  }
+  if (insp.tipo_formulario === 'inspeccion_semanal') {
+    ['luces','motor','accesorios','documentos'].forEach(s => contarFallas(s, 'malo'));
+  } else if (insp.tipo_formulario === 'inspeccion_diaria') {
+    ['exterior','interior','equipo_medico','accesorios_diaria','saneamiento','documentacion'].forEach(s => contarFallas(s, 'incorrecto'));
+  }
+
+  const tieneObservaciones = totalFallas > 0 || (insp.observaciones && insp.observaciones.trim());
+
+  let html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>${tipoLabel}</title>${estilosBase()}</head><body>`;
+
+  // ── Encabezado ──
+  html += `<div class="header">
+    <p class="header-title">${tipoLabel.toUpperCase()}</p>
+    <p class="header-sub">${normalizarEstablecimiento(equipo.centro_principal) || equipo.centro_principal || 'Sistema de Gestión de Equipos'}</p>
+    <div class="header-meta">
+      <span>Fecha pauta: <strong>${formatFecha(insp.fecha)}</strong></span>
+      <span>Tipo equipo: <strong>${TIPO_EQUIPO_CATEGORIA[equipo.tipo] || equipo.tipo || '-'}</strong></span>
+      ${equipo.patente ? `<span>Patente: <strong>${equipo.patente}</strong></span>` : ''}
+    </div>
   </div>`;
 
-  // Checklists pauta semanal
+  // ── Responsables ──
+  html += tarjetasResponsables(insp, revisor);
+
+  // ── Info equipo ──
+  html += `<div class="section-title">Datos del Equipo</div>`;
+  html += infoEquipo(equipo, insp);
+
+  // ── Checklists según tipo ──
   if (insp.tipo_formulario === 'inspeccion_semanal') {
-    const secciones = [
-      { key: 'luces', titulo: '💡 Luces', estadoBueno: 'bueno' },
-      { key: 'motor', titulo: '🔧 Motor', estadoBueno: 'bueno' },
-      { key: 'accesorios', titulo: '📦 Accesorios', estadoBueno: 'bueno' },
-      { key: 'documentos', titulo: '📄 Documentos', estadoBueno: 'bueno' },
-    ];
-    for (const sec of secciones) {
-      if (!datos[sec.key]) continue;
-      html += `<h2>${sec.titulo}</h2><table><tr><th>Ítem</th><th>Estado</th><th>Observación</th></tr>`;
-      for (const [item, v] of Object.entries(datos[sec.key])) {
-        const badge = v?.estado === sec.estadoBueno ? 'badge-ok' : v?.estado === 'n/a' ? 'badge-na' : 'badge-falla';
-        const estadoLabel = v?.estado === 'bueno' ? 'OK' : v?.estado === 'malo' ? 'FALLA' : (v?.estado || '-');
-        html += `<tr><td>${item}</td><td><span class="${badge}">${estadoLabel}</span></td><td>${v?.obs || '-'}</td></tr>`;
-      }
-      html += `</table>`;
-    }
+    html += tablaChecklist('Luces', datos.luces, mapEstadoBueno);
+    html += tablaChecklist('Motor', datos.motor, mapEstadoBueno);
+    html += tablaChecklist('Accesorios', datos.accesorios, mapEstadoBueno);
+    html += tablaChecklist('Documentos', datos.documentos, mapEstadoBueno);
+
     if (datos.danos) {
       const danosMarcados = Object.entries(datos.danos).filter(([, v]) => v?.marcado);
       if (danosMarcados.length > 0) {
-        html += `<h2>⚠️ Daños Visuales</h2><table><tr><th>Zona</th><th>Descripción</th></tr>`;
+        html += `<div class="section-title">Daños Visuales Reportados</div>`;
         for (const [zona, v] of danosMarcados) {
-          html += `<tr><td>${zona.replace(/_/g, ' ')}</td><td>${v.descripcion || '-'}</td></tr>`;
+          html += `<div class="dano-row"><strong>${zona.replace(/_/g,' ')}</strong> — ${v.descripcion || 'Sin descripción'}</div>`;
         }
-        html += `</table>`;
       }
     }
   }
 
-  // Checklist pauta diaria
   if (insp.tipo_formulario === 'inspeccion_diaria') {
-    const secciones = [
-      { key: 'exterior', titulo: '🚗 Revisión Exterior' },
-      { key: 'interior', titulo: '🪑 Revisión Interior' },
-      { key: 'equipo_medico', titulo: '🏥 Equipos Médicos' },
-      { key: 'accesorios_diaria', titulo: '📦 Accesorios' },
-      { key: 'saneamiento', titulo: '🧹 Limpieza Básica' },
-      { key: 'documentacion', titulo: '📄 Documentación' },
-    ];
-    for (const sec of secciones) {
-      if (!datos[sec.key]) continue;
-      html += `<h2>${sec.titulo}</h2><table><tr><th>Ítem</th><th>Estado</th><th>Observación</th></tr>`;
-      for (const [item, v] of Object.entries(datos[sec.key])) {
-        const badge = v?.estado === 'correcto' ? 'badge-ok' : v?.estado === 'n/a' ? 'badge-na' : 'badge-falla';
-        const estadoLabel = v?.estado === 'correcto' ? 'OK' : v?.estado === 'incorrecto' ? 'FALLA' : (v?.estado || '-');
-        html += `<tr><td>${item}</td><td><span class="${badge}">${estadoLabel}</span></td><td>${v?.obs || '-'}</td></tr>`;
-      }
-      html += `</table>`;
+    html += tablaChecklist('Revisión Exterior', datos.exterior, mapEstadoCorrecto);
+    html += tablaChecklist('Revisión Interior', datos.interior, mapEstadoCorrecto);
+    html += tablaChecklist('Equipos Médicos', datos.equipo_medico, mapEstadoCorrecto);
+    html += tablaChecklist('Accesorios', datos.accesorios_diaria, mapEstadoCorrecto);
+    html += tablaChecklist('Limpieza y Saneamiento', datos.saneamiento, mapEstadoCorrecto);
+    html += tablaChecklist('Documentación', datos.documentacion, mapEstadoCorrecto);
+    if (datos.problemasDetectados) {
+      html += `<div class="section-title">Problemas Detectados</div><div class="obs-box">${datos.problemasDetectados}</div>`;
     }
-    if (datos.problemasDetectados) html += `<h3>Problemas detectados:</h3><p>${datos.problemasDetectados}</p>`;
-    if (datos.accionesTomadas) html += `<h3>Acciones tomadas:</h3><p>${datos.accionesTomadas}</p>`;
-  }
-
-  // Turno chofer / pauta anual: observaciones generales
-  if (insp.tipo_formulario === 'turno_chofer' || insp.tipo_formulario === 'inspeccion_anual') {
-    if (insp.observaciones) {
-      html += `<h2>📝 Observaciones</h2><p>${insp.observaciones}</p>`;
+    if (datos.accionesTomadas) {
+      html += `<div class="section-title">Acciones Tomadas</div><div class="obs-box">${datos.accionesTomadas}</div>`;
     }
   }
 
-  // Observaciones generales
-  if (insp.observaciones && insp.tipo_formulario !== 'turno_chofer') {
-    html += `<h2>📝 Observaciones Generales</h2><p>${insp.observaciones}</p>`;
+  // DEA / Monitor / Multiparametros: checklist genérico si viene en datos.checklist
+  if (datos.checklist && Object.keys(datos.checklist).length > 0) {
+    html += tablaChecklist('Checklist de Revisión', datos.checklist, mapEstadoBueno);
   }
 
-  // Nota del revisor y aprobación
-  html += `<div class="aprobado">
-    <strong>✅ Aprobado por:</strong> ${revisor.full_name || revisor.email}<br>
-    <strong>Email:</strong> ${revisor.email}<br>
-    <strong>Fecha de revisión:</strong> ${fechaRevision}
-    ${insp.nota_revision ? `<br><strong>Nota:</strong> ${insp.nota_revision}` : ''}
-  </div>`;
+  // ── Observaciones generales ──
+  if (insp.observaciones && insp.observaciones.trim()) {
+    html += `<div class="section-title">Observaciones Generales</div><div class="obs-box">${insp.observaciones}</div>`;
+  }
 
-  html += `<div class="footer">Documento generado automáticamente por el Sistema de Gestión de Equipos · ${new Date().toLocaleDateString('es-CL')}</div>`;
+  // ── Nota del revisor ──
+  if (insp.nota_revision && insp.nota_revision.trim()) {
+    html += `<div class="section-title">Nota del Revisor</div><div class="obs-box" style="background:#eff6ff;border-color:#93c5fd;color:#1e3a8a;">${insp.nota_revision}</div>`;
+  }
+
+  // ── Resumen resultado ──
+  if (totalItems > 0) {
+    const clase = tieneObservaciones ? 'observaciones' : 'aprobado';
+    const icono = tieneObservaciones ? '⚠️' : '✅';
+    const msg   = tieneObservaciones
+      ? `Aprobada con observaciones — ${totalFallas} ítem(s) con falla de ${totalItems} revisados`
+      : `Aprobada sin observaciones — ${totalItems} ítem(s) revisados, todos conformes`;
+    html += `<div class="resultado-box ${clase}">
+      <span class="resultado-icon">${icono}</span>
+      <div class="resultado-texto"><strong>${msg}</strong>
+        Aprobado por ${revisor.full_name || revisor.email} el ${formatFecha(insp.fecha_revision)}
+      </div>
+    </div>`;
+  }
+
+  html += `<div class="footer">Documento generado automáticamente · ${ahora()} · Sistema de Gestión de Equipos Bitácora</div>`;
   html += `</body></html>`;
   return html;
 }
 
 function htmlMantenimientoExterno(equipo, revisor) {
-  const fecha = equipo.fecha_ultimo_informe_externo ? equipo.fecha_ultimo_informe_externo.split('-').reverse().join('/') : '-';
-  let html = `<!DOCTYPE html><html><head><meta charset="utf-8">${estilosBase()}</head><body>`;
-  html += `<h1>🔧 Informe de Mantenimiento Externo</h1>`;
-  html += `<div class="meta">
-    <div class="meta-row"><span class="meta-label">Equipo:</span><span>${equipo.numero_inventario || equipo.id}</span></div>
-    <div class="meta-row"><span class="meta-label">Marca / Modelo:</span><span>${equipo.marca || '-'} ${equipo.modelo || ''}</span></div>
-    <div class="meta-row"><span class="meta-label">Número de Serie:</span><span>${equipo.numero_serie || '-'}</span></div>
-    <div class="meta-row"><span class="meta-label">Centro:</span><span>${equipo.centro_principal || '-'}${equipo.subsede ? ' · ' + equipo.subsede : ''}</span></div>
-    <div class="meta-row"><span class="meta-label">Fecha del Informe:</span><span>${fecha}</span></div>
-    <div class="meta-row"><span class="meta-label">Empresa Responsable:</span><span>${equipo.empresa_responsable_informe_externo || '-'}</span></div>
+  const fecha = formatFecha(equipo.fecha_ultimo_informe_externo);
+  const horaGen = ahora();
+
+  let html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Mantenimiento Externo</title>${estilosBase()}</head><body>`;
+
+  html += `<div class="header">
+    <p class="header-title">INFORME DE MANTENIMIENTO EXTERNO</p>
+    <p class="header-sub">${normalizarEstablecimiento(equipo.centro_principal) || equipo.centro_principal || 'Sistema de Gestión de Equipos'}</p>
+    <div class="header-meta">
+      <span>Fecha informe: <strong>${fecha}</strong></span>
+      <span>Tipo equipo: <strong>${TIPO_EQUIPO_CATEGORIA[equipo.tipo] || equipo.tipo || '-'}</strong></span>
+    </div>
   </div>`;
-  html += `<h2>👤 Responsable de Carga</h2>
-    <div class="meta">
-      <div class="meta-row"><span class="meta-label">Cargado por:</span><span>${revisor.full_name || revisor.email}</span></div>
-      <div class="meta-row"><span class="meta-label">Email:</span><span>${revisor.email}</span></div>
-      <div class="meta-row"><span class="meta-label">Fecha de registro:</span><span>${new Date().toLocaleDateString('es-CL')}</span></div>
-    </div>`;
+
+  html += `<div class="resp-grid">
+    <div class="resp-card realizador">
+      <div class="rc-title">Empresa Responsable</div>
+      <div class="rc-name">${equipo.empresa_responsable_informe_externo || '—'}</div>
+      <div class="rc-detail">Fecha del informe: <strong>${fecha}</strong></div>
+    </div>
+    <div class="resp-card aprobador">
+      <div class="rc-title">Registrado por</div>
+      <div class="rc-name">${revisor.full_name || revisor.email}</div>
+      <div class="rc-detail">Email: <strong>${revisor.email}</strong></div>
+      <div class="rc-detail">Registro generado: <strong>${horaGen}</strong></div>
+    </div>
+  </div>`;
+
+  html += `<div class="section-title">Datos del Equipo</div>
+  <div class="equipo-card"><div class="equipo-grid">
+    <div class="eq-row"><span class="eq-label">N° Inventario</span><span class="eq-val">${equipo.numero_inventario || '-'}</span></div>
+    <div class="eq-row"><span class="eq-label">Tipo</span><span class="eq-val">${TIPO_EQUIPO_CATEGORIA[equipo.tipo] || equipo.tipo || '-'}</span></div>
+    <div class="eq-row"><span class="eq-label">Marca / Modelo</span><span class="eq-val">${equipo.marca || '-'} ${equipo.modelo || ''}</span></div>
+    <div class="eq-row"><span class="eq-label">N° Serie</span><span class="eq-val">${equipo.numero_serie || '-'}</span></div>
+    <div class="eq-row"><span class="eq-label">Establecimiento</span><span class="eq-val">${equipo.centro_principal || '-'}</span></div>
+    ${equipo.subsede ? `<div class="eq-row"><span class="eq-label">Subsede</span><span class="eq-val">${equipo.subsede}</span></div>` : ''}
+  </div></div>`;
+
   if (equipo.url_ultimo_informe_externo) {
-    html += `<h2>📎 Documento Original</h2><p><a href="${equipo.url_ultimo_informe_externo}">Ver informe original adjunto</a></p>`;
+    html += `<div class="section-title">Documento Original Adjunto</div>
+    <p style="font-size:12px;"><a href="${equipo.url_ultimo_informe_externo}" style="color:#1d4ed8;">Ver informe de mantenimiento externo original</a></p>`;
   }
-  html += `<div class="footer">Documento generado automáticamente por el Sistema de Gestión de Equipos · ${new Date().toLocaleDateString('es-CL')}</div>`;
+
+  html += `<div class="resultado-box aprobado" style="margin-top:20px;">
+    <span class="resultado-icon">✅</span>
+    <div class="resultado-texto"><strong>Informe registrado correctamente</strong>
+      Registrado por ${revisor.full_name || revisor.email} el ${horaGen}
+    </div>
+  </div>`;
+
+  html += `<div class="footer">Documento generado automáticamente · ${horaGen} · Sistema de Gestión de Equipos Bitácora</div>`;
   html += `</body></html>`;
   return html;
 }
