@@ -256,6 +256,25 @@ function InspeccionCard({ insp, onActualizar }) {
                 </div>
               )}
             </div>
+
+            {/* Revisor — visible sin expandir */}
+            {insp.estado !== "pendiente" && (insp.revisor_nombre || insp.revisor_email) && (
+              <div className="flex items-center gap-1.5 mt-2 px-2.5 py-1.5 rounded-lg w-fit"
+                style={{
+                  background: insp.estado === "aprobado" ? "#F0FDF4" : "#FEF2F2",
+                  border: `1px solid ${insp.estado === "aprobado" ? "#BBF7D0" : "#FECACA"}`
+                }}>
+                <User className="w-3 h-3 flex-shrink-0" style={{ color: insp.estado === "aprobado" ? "#16A34A" : "#DC2626" }} />
+                <span className="text-xs font-semibold" style={{ color: insp.estado === "aprobado" ? "#15803D" : "#DC2626" }}>
+                  {insp.estado === "aprobado" ? "Aprobado" : "Rechazado"} por {insp.revisor_nombre || insp.revisor_email}
+                </span>
+                {insp.fecha_revision && (
+                  <span className="text-xs" style={{ color: insp.estado === "aprobado" ? "#86EFAC" : "#FECACA" }}>
+                    · {formatFecha(insp.fecha_revision)}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           <button className="text-slate-400 hover:text-slate-600 flex-shrink-0 mt-1">
             {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
