@@ -508,17 +508,8 @@ function MantenimientoTab({ equipo, actividades, user, onUpdated }) {
         />
       )}
 
-      {/* Revisión Anual */}
-      <div className="bg-white p-4 rounded-2xl" style={{ border: "1px solid #BBF7D0" }}>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-1">Revisión Anual</p>
-            <p className="text-sm font-semibold text-slate-800">Próxima revisión programada</p>
-            <p className="text-xs text-slate-400 mt-0.5">Informe técnico o certificado biomédico</p>
-          </div>
-          <FileUploadButton label="Cargar Informe" color="#10B981" />
-        </div>
-      </div>
+      {/* Informe de Mantenimiento Externo */}
+      <InformeExternoCard equipo={equipo} user={user} onUpdated={onUpdated} />
 
       {mantenimientos.length === 0
         ? <EmptyState icon={Wrench} text="Sin registros de mantenimiento" />
@@ -1871,6 +1862,137 @@ function EmptyState({ icon: Icon, text }) {
     <div className="py-14 flex flex-col items-center gap-3">
       <Icon className="w-10 h-10 text-slate-200" />
       <p className="text-sm text-slate-400">{text}</p>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   INFORME EXTERNO CARD
+══════════════════════════════════════════════ */
+function InformeExternoCard({ equipo, user, onUpdated }) {
+  const fileRef = useRef();
+  const [uploading, setUploading] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [form, setForm] = useState({
+    empresa: equipo.empresa_responsable_informe_externo || "",
+    fecha: equipo.fecha_ultimo_informe_externo || new Date().toISOString().split("T")[0],
+  });
+  const [archivoUrl, setArchivoUrl] = useState(equipo.url_ultimo_informe_externo || "");
+  const [subiendoDrive, setSubiendoDrive] = useState(false);
+  const [driveOk, setDriveOk] = useState(false);
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setArchivoUrl(file_url);
+    setUploading(false);
+  };
+
+  const handleGuardar = async () => {
+    if (!archivoUrl) return;
+    setGuardando(true);
+    await base44.entities.Equipo.update(equipo.id, {
+      fecha_ultimo_informe_externo: form.fecha,
+      url_ultimo_informe_externo: archivoUrl,
+      empresa_responsable_informe_externo: form.empresa,
+      responsable_carga_informe_externo: user?.email || "",
+    });
+
+    // Subir a Drive
+    setSubiendoDrive(true);
+    try {
+      await base44.functions.invoke("subirInspeccionDrive", {
+        tipo: "mantenimiento_externo",
+        equipo_id: equipo.id,
+      });
+      setDriveOk(true);
+    } catch (_) {}
+    setSubiendoDrive(false);
+    setGuardando(false);
+    onUpdated && onUpdated();
+  };
+
+  return (
+    <div className="bg-white p-5 rounded-2xl space-y-4" style={{ border: "1px solid #BBF7D0" }}>
+      <div className="flex items-center gap-2 mb-1">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#DCFCE7" }}>
+          <Wrench className="w-4 h-4 text-green-600" />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-green-600 uppercase tracking-widest">Informe de Mantenimiento Externo</p>
+          <p className="text-xs text-slate-400">Se guardará en Google Drive automáticamente al registrar</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-slate-600 block mb-1">Empresa Responsable</label>
+          <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-200"
+            style={{ borderColor: "#BBF7D0" }}
+            placeholder="Nombre empresa o técnico"
+            value={form.empresa} onChange={e => setForm(f => ({ ...f, empresa: e.target.value }))} />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-slate-600 block mb-1">Fecha del Informe</label>
+          <input type="date" className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-200"
+            style={{ borderColor: "#BBF7D0" }}
+            value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} />
+        </div>
+      </div>
+
+      <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" className="hidden" onChange={handleFile} />
+
+      {archivoUrl ? (
+        <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
+          <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+          <span className="text-xs text-green-700 font-medium flex-1">Archivo listo</span>
+          <a href={archivoUrl} target="_blank" rel="noreferrer" className="text-xs text-green-700 underline flex items-center gap-1">
+            Ver <ExternalLink className="w-3 h-3" />
+          </a>
+          <button type="button" onClick={() => setArchivoUrl("")} className="text-slate-400 hover:text-red-400">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ) : (
+        <button onClick={() => fileRef.current?.click()} disabled={uploading}
+          className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-medium"
+          style={{ border: "2px dashed #86EFAC", color: "#16A34A", background: "#F0FDF4" }}>
+          {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Subiendo archivo...</> : <><Upload className="w-4 h-4" /> Seleccionar PDF del Informe</>}
+        </button>
+      )}
+
+      {driveOk && (
+        <div className="flex items-center gap-2 p-2.5 rounded-xl text-xs font-semibold" style={{ background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }}>
+          <CheckCircle className="w-3.5 h-3.5" /> Guardado en Google Drive correctamente
+        </div>
+      )}
+
+      <button
+        onClick={handleGuardar}
+        disabled={!archivoUrl || guardando || uploading}
+        className="w-full py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 disabled:opacity-50"
+        style={{ background: "#16A34A" }}>
+        {subiendoDrive ? <><Loader2 className="w-4 h-4 animate-spin" /> Sincronizando con Drive...</>
+          : guardando ? "Guardando..."
+          : <><FileText className="w-4 h-4" /> Registrar Informe y Subir a Drive</>}
+      </button>
+
+      {equipo.fecha_ultimo_informe_externo && (
+        <div className="p-3 rounded-xl text-xs space-y-1" style={{ background: "#F8FAFC", border: "1px solid #E2E8F0" }}>
+          <p className="font-bold text-slate-500 uppercase tracking-widest text-xs mb-1">Último Informe Registrado</p>
+          <p className="text-slate-700"><span className="font-semibold">Fecha:</span> {equipo.fecha_ultimo_informe_externo.split("-").reverse().join("/")}</p>
+          {equipo.empresa_responsable_informe_externo && <p className="text-slate-700"><span className="font-semibold">Empresa:</span> {equipo.empresa_responsable_informe_externo}</p>}
+          {equipo.responsable_carga_informe_externo && <p className="text-slate-700"><span className="font-semibold">Cargado por:</span> {equipo.responsable_carga_informe_externo}</p>}
+          {equipo.url_ultimo_informe_externo && (
+            <a href={equipo.url_ultimo_informe_externo} target="_blank" rel="noreferrer"
+              className="inline-flex items-center gap-1 text-blue-600 font-semibold hover:underline mt-1">
+              <ExternalLink className="w-3 h-3" /> Ver documento original
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -86,6 +86,12 @@ Deno.serve(async (req) => {
         nota_revision: nota || '',
       });
 
+      // Subir PDF a Google Drive (en background, no bloquea la respuesta)
+      base44.asServiceRole.functions.invoke('subirInspeccionDrive', {
+        tipo: 'inspeccion',
+        inspeccion_id,
+      }).catch(err => console.error('Error subiendo a Drive:', err.message));
+
     } else if (accion === 'rechazar') {
       await base44.asServiceRole.entities.InspeccionPendiente.update(inspeccion_id, {
         estado: 'rechazado',
