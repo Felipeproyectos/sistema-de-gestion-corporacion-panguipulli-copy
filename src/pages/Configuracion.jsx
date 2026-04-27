@@ -293,7 +293,7 @@ export default function Configuracion() {
 function BitacoraPublicaLink() {
   const [copied, setCopied] = useState(false);
   const qrRef = useRef(null);
-  const url = `${window.location.origin}/bitacora-publica`;
+  const url = `https://gestion.apscolab.com/bitacora-publica`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(url);
