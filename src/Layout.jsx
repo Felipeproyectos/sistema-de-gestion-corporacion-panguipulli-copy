@@ -159,7 +159,7 @@ export default function Layout({ children, currentPageName }) {
       }
 
       {/* Main */}
-      <main className="flex-1 lg:overflow-auto" style={{ overscrollBehavior: "none", WebkitOverflowScrolling: "touch" }}>
+      <main className="flex-1 overflow-auto" style={{ overscrollBehavior: "none", WebkitOverflowScrolling: "touch" }}>
         <div className="lg:hidden h-16" />
         {children}
         {/* Bottom padding so content isn't hidden behind mobile nav */}
