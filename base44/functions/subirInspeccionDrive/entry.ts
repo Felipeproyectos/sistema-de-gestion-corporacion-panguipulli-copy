@@ -59,6 +59,23 @@ const TIPO_EQUIPO_CATEGORIA = {
   monitor_multiparametros: 'Monitor Multiparametros',
 };
 
+// Mapeo de nombres de centro a nombre oficial de carpeta
+const ESTABLECIMIENTO_CARPETA = {
+  'panguipulli':    'Cesfam Panguipulli',
+  'choshuenco':     'Cesfam Choshuenco',
+  'coñaripe':       'Cesfam Coñaripe',
+  'conaripe':       'Cesfam Coñaripe',
+};
+
+function normalizarEstablecimiento(nombre) {
+  if (!nombre) return nombre;
+  const lower = nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  for (const [key, val] of Object.entries(ESTABLECIMIENTO_CARPETA)) {
+    if (lower.includes(key.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))) return val;
+  }
+  return nombre; // fallback: usar el nombre tal cual
+}
+
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 // ── Generadores de HTML ──────────────────────────────────────────────────────
@@ -223,9 +240,9 @@ Deno.serve(async (req) => {
 
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('googledrive');
 
-    // Carpeta raíz del sistema
+    // Carpeta raíz: BITÁCORA
     const rootDriveId = await obtenerRootDriveId(accessToken);
-    const sistemaCarpetaId = await obtenerOCrearCarpeta('Sistema Gestión Equipos', rootDriveId, accessToken);
+    const raizId = await obtenerOCrearCarpeta('BITÁCORA', rootDriveId, accessToken);
 
     if (tipo === 'inspeccion') {
       // ── Subir PDF de inspección aprobada ──
@@ -235,17 +252,19 @@ Deno.serve(async (req) => {
       const datos = (() => { try { return insp.datos_json ? JSON.parse(insp.datos_json) : {}; } catch { return {}; } })();
       const equipo = datos.equipo || {};
 
-      const centro = equipo.centro_principal || 'Sin Centro';
-      const categoriaEquipo = TIPO_EQUIPO_CATEGORIA[equipo.tipo] || equipo.tipo || 'Otros';
+      const establecimiento = normalizarEstablecimiento(equipo.centro_principal) || 'Sin Establecimiento';
+      const categoriaEquipo = TIPO_FORMULARIO_LABEL[insp.tipo_formulario] === 'Turno Chofer'
+        ? 'Turno Chofer'
+        : TIPO_EQUIPO_CATEGORIA[equipo.tipo] || equipo.tipo || 'Otros';
 
       // Determinar mes desde fecha de inspección
       const fechaObj = insp.fecha ? new Date(insp.fecha + 'T12:00:00') : new Date();
       const mesLabel = MESES[fechaObj.getMonth()];
       const anio = fechaObj.getFullYear();
 
-      // Estructura: SistemaGestión / Centro / Categoría / Mes-Año
-      const centroCarpetaId = await obtenerOCrearCarpeta(centro, sistemaCarpetaId, accessToken);
-      const categoriaCarpetaId = await obtenerOCrearCarpeta(categoriaEquipo, centroCarpetaId, accessToken);
+      // Estructura: BITÁCORA / [Cesfam X] / [Categoría] / [Mes Año]
+      const establecimientoId = await obtenerOCrearCarpeta(establecimiento, raizId, accessToken);
+      const categoriaCarpetaId = await obtenerOCrearCarpeta(categoriaEquipo, establecimientoId, accessToken);
       const mesCarpetaId = await obtenerOCrearCarpeta(`${mesLabel} ${anio}`, categoriaCarpetaId, accessToken);
 
       const tipoLabel = TIPO_FORMULARIO_LABEL[insp.tipo_formulario] || insp.tipo_formulario;
@@ -269,8 +288,8 @@ Deno.serve(async (req) => {
       const equipo = await base44.asServiceRole.entities.Equipo.get(equipo_id);
       if (!equipo) return Response.json({ error: 'Equipo no encontrado' }, { status: 404 });
 
+      const establecimiento = normalizarEstablecimiento(equipo.centro_principal) || 'Sin Establecimiento';
       const categoriaEquipo = TIPO_EQUIPO_CATEGORIA[equipo.tipo] || equipo.tipo || 'Otros';
-      const centro = equipo.centro_principal || 'Sin Centro';
 
       const fechaObj = equipo.fecha_ultimo_informe_externo
         ? new Date(equipo.fecha_ultimo_informe_externo + 'T12:00:00')
@@ -278,8 +297,9 @@ Deno.serve(async (req) => {
       const mesLabel = MESES[fechaObj.getMonth()];
       const anio = fechaObj.getFullYear();
 
-      const centroCarpetaId = await obtenerOCrearCarpeta(centro, sistemaCarpetaId, accessToken);
-      const categoriaCarpetaId = await obtenerOCrearCarpeta(categoriaEquipo, centroCarpetaId, accessToken);
+      // Estructura: BITÁCORA / [Cesfam X] / [Categoría] / [Mes Año]
+      const establecimientoId = await obtenerOCrearCarpeta(establecimiento, raizId, accessToken);
+      const categoriaCarpetaId = await obtenerOCrearCarpeta(categoriaEquipo, establecimientoId, accessToken);
       const mesCarpetaId = await obtenerOCrearCarpeta(`${mesLabel} ${anio}`, categoriaCarpetaId, accessToken);
 
       const nombreArchivo = `Mantenimiento Externo - ${equipo.numero_inventario || equipo.id} - ${equipo.fecha_ultimo_informe_externo || 'sin-fecha'}`;

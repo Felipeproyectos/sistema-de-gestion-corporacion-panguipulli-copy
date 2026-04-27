@@ -172,8 +172,10 @@ Deno.serve(async (req) => {
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('googledrive');
 
     const rootDriveId = await obtenerRootDriveId(accessToken);
-    const sistemaCarpetaId = await obtenerOCrearCarpeta('Sistema Gestión Equipos', rootDriveId, accessToken);
-    const pruebasCarpetaId = await obtenerOCrearCarpeta('_Documentos de Prueba', sistemaCarpetaId, accessToken);
+    const raizId = await obtenerOCrearCarpeta('BITÁCORA', rootDriveId, accessToken);
+    const establecimientoId = await obtenerOCrearCarpeta('Cesfam Panguipulli', raizId, accessToken);
+    const categoriaId = await obtenerOCrearCarpeta('Ambulancias', establecimientoId, accessToken);
+    const pruebasCarpetaId = await obtenerOCrearCarpeta('Abril 2026', categoriaId, accessToken);
 
     const htmlContent = generarHTMLPrueba();
     const hoy = new Date().toLocaleDateString('es-CL').replace(/\//g, '-');
