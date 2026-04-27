@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { invokePublic } from "@/lib/publicFetch";
 import { Loader2, AlertTriangle, ClipboardCheck, Send } from "lucide-react";
 
 /**
@@ -26,27 +26,13 @@ export default function PautaPlaceholder({ categoria, pauta, equipos, loading, o
     setError("");
     setSaving(true);
 
-    // 1. Registrar en Actividad para el historial del equipo
-    await base44.entities.Actividad.create({
+    await invokePublic("guardarInspeccionPendiente", {
+      tipo_formulario: "inspeccion_semanal",
       equipo_id,
-      tipo: pauta?.tipo_actividad || "inspeccion_rutinaria",
+      equipo_label: equipo ? `${equipo.marca} ${equipo.modelo}` : equipo_id,
+      conductor: responsable,
       fecha,
-      usuario_nombre: responsable,
       observaciones: `[${pauta?.label || "Pauta"} - ${categoria?.label}] Resultado: ${resultado}. ${observaciones}`.trim(),
-    });
-
-    // 2. Registrar en HistorialMantenimiento para sincronizar con mantenciones internas
-    await base44.entities.HistorialMantenimiento.create({
-      equipo_id,
-      fecha_inspeccion: fecha,
-      tipo_mantenimiento: pauta?.id === "anual" ? "calibracion" : "inspeccion_rutinaria",
-      resultado: resultado === "aprobado" ? "aprobado"
-        : resultado === "observaciones" ? "aprobado_con_observaciones"
-        : "rechazado",
-      pruebas_realizadas: `${pauta?.label} — Categoría: ${categoria?.label}`,
-      observaciones,
-      tecnico_responsable: responsable,
-      cargado_por_email: responsable,
     });
 
     setSaving(false);

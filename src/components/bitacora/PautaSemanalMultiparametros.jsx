@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { invokePublic } from "@/lib/publicFetch";
 import { Loader2, AlertTriangle, Send } from "lucide-react";
 
 const ITEMS_CHECKLIST = [
@@ -67,7 +67,7 @@ export default function PautaSemanalMultiparametros({ equipos, loading, onSucces
       : equipo ? `${equipo.marca} ${equipo.modelo}` : targetId;
 
     try {
-      const res = await base44.functions.invoke("guardarInspeccionPendiente", {
+      await invokePublic("guardarInspeccionPendiente", {
         tipo_formulario: "inspeccion_semanal",
         equipo_id: targetId,
         equipo_label: equipoLabel,
@@ -77,7 +77,6 @@ export default function PautaSemanalMultiparametros({ equipos, loading, onSucces
         checklist,
         descripcion,
       });
-      if (!res.data?.ok) throw new Error(res.data?.error || "Error al guardar");
       setSaving(false);
       onSuccess && onSuccess({ hasFallas, conductor: responsable });
     } catch (err) {

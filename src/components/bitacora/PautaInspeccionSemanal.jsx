@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { invokePublic } from "@/lib/publicFetch";
 import { base44 } from "@/api/base44Client";
 import {
   CheckCircle, Loader2, AlertTriangle, ChevronDown, ChevronUp,
@@ -412,7 +413,7 @@ export default function PautaInspeccionSemanal({ equipos, onSuccess, equipoFijo 
         : form.equipo_id;
 
       // Guardar en InspeccionPendiente via backend (sin autenticación requerida)
-      const res = await base44.functions.invoke("guardarInspeccionPendiente", {
+      await invokePublic("guardarInspeccionPendiente", {
         tipo_formulario: "inspeccion_semanal",
         equipo_id: form.equipo_id,
         equipo_label: equipoLabel,
@@ -427,7 +428,6 @@ export default function PautaInspeccionSemanal({ equipos, onSuccess, equipoFijo 
         documentos,
         danos,
       });
-      if (!res.data?.ok) throw new Error(res.data?.error || "Error al guardar");
 
       setSaving(false);
       onSuccess && onSuccess({ hasFallas, conductor: form.conductor });

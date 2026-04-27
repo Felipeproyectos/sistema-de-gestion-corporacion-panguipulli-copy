@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { invokePublic } from "@/lib/publicFetch";
 import {
   Car, CheckCircle, Loader2, AlertTriangle, ClipboardCheck,
   ChevronRight, ArrowLeft, Activity, Heart, Zap, ClipboardList
@@ -91,8 +91,8 @@ export default function PublicBitacora() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    base44.functions.invoke("getPublicAmbulances", {})
-      .then(res => setEquipos(res.data?.equipos || []))
+    invokePublic("getPublicAmbulances", {})
+      .then(data => setEquipos(data?.equipos || []))
       .catch(() => setError("No se pudieron cargar los equipos."))
       .finally(() => setLoadingEquipos(false));
   }, []);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { invokePublic } from "@/lib/publicFetch";
 import {
   CheckCircle, Loader2, AlertTriangle, ChevronDown, ChevronUp, Send
 } from "lucide-react";
@@ -248,7 +248,7 @@ export default function PautaDiariaAmbulancia({ equipoFijo, equipos = [], onSucc
         });
       });
 
-      const res = await base44.functions.invoke("guardarInspeccionPendiente", {
+      await invokePublic("guardarInspeccionPendiente", {
         tipo_formulario: "inspeccion_diaria",
         equipo_id: eq?.id || equipoId,
         equipo_label: equipoLabel,
@@ -256,7 +256,6 @@ export default function PautaDiariaAmbulancia({ equipoFijo, equipos = [], onSucc
         fecha,
         observaciones: lineas.join(" | "),
         momento,
-        // Enviar cada sección con su nombre para que guardarInspeccionPendiente las guarde
         exterior: checklistPorSeccion.exterior,
         interior: checklistPorSeccion.interior,
         equipo_medico: checklistPorSeccion.equipos_medicos,
@@ -268,7 +267,6 @@ export default function PautaDiariaAmbulancia({ equipoFijo, equipos = [], onSucc
       });
 
       setSaving(false);
-      if (!res.data?.ok) { setError(res.data?.error || "Error al guardar."); return; }
       onSuccess && onSuccess({ hasFallas, conductor });
     } catch (err) {
       setSaving(false);

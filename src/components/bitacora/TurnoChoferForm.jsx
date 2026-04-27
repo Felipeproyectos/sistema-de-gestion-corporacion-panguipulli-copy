@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { invokePublic } from "@/lib/publicFetch";
 import { Loader2, AlertTriangle } from "lucide-react";
 
 export default function TurnoChoferForm({ equipos, loading, onSuccess, equipoFijo }) {
@@ -28,7 +28,7 @@ export default function TurnoChoferForm({ equipos, loading, onSuccess, equipoFij
       : form.equipo_id;
 
     try {
-      const res = await base44.functions.invoke("guardarInspeccionPendiente", {
+      await invokePublic("guardarInspeccionPendiente", {
         tipo_formulario: "turno_chofer",
         equipo_id: form.equipo_id,
         equipo_label: equipoLabel,
@@ -37,7 +37,6 @@ export default function TurnoChoferForm({ equipos, loading, onSuccess, equipoFij
         km_inicial: Number(form.km_inicial),
         observaciones: form.observaciones || `KM Inicial: ${form.km_inicial}`,
       });
-      if (!res.data?.ok) throw new Error(res.data?.error || "Error al guardar");
       setSaving(false);
       onSuccess("Registro de turno enviado para revisión.");
     } catch (err) {

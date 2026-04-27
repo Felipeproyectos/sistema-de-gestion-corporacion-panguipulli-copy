@@ -1,8 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization' } });
+  }
+
   try {
-    const base44 = createClientFromRequest(req);
+    const base44 = createClientFromRequest(req, { allowUnauthenticated: true });
     const body = await req.json();
 
     const { equipo_id, conductor, fecha, km_inicial, valor_km, observaciones } = body;
@@ -34,8 +38,8 @@ Deno.serve(async (req) => {
       observaciones: observaciones || ""
     });
 
-    return Response.json({ ok: true });
+    return Response.json({ ok: true }, { headers: { 'Access-Control-Allow-Origin': '*' } });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
   }
 });
