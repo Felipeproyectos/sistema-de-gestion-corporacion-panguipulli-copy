@@ -92,8 +92,12 @@ export default function PublicBitacora() {
 
   useEffect(() => {
     invokePublic("getPublicAmbulances", {})
-      .then(data => setEquipos(data?.equipos || []))
-      .catch(() => setError("No se pudieron cargar los equipos."))
+      .then(data => {
+        const lista = data?.equipos || [];
+        setEquipos(lista);
+        if (lista.length === 0) setError("No hay equipos registrados en el sistema.");
+      })
+      .catch((err) => setError(`No se pudieron cargar los equipos: ${err.message}`))
       .finally(() => setLoadingEquipos(false));
   }, []);
 
@@ -158,6 +162,11 @@ export default function PublicBitacora() {
         ) : !categoria ? (
           /* NIVEL 1: Categorías */
           <div className="space-y-3">
+            {loadingEquipos && (
+              <div className="flex items-center justify-center gap-2 py-3 text-white/70 text-sm">
+                <Loader2 className="w-4 h-4 animate-spin" /> Cargando equipos...
+              </div>
+            )}
             {CATEGORIAS.map((cat, idx) => {
               const Icon = cat.icon;
               return (

@@ -107,7 +107,8 @@ const AuthenticatedApp = () => {
 
 function App() {
   // Detect public route BEFORE any auth logic runs
-  const isPublicBitacora = typeof window !== 'undefined' && window.location.pathname === '/bitacora-publica';
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const isPublicBitacora = pathname === '/bitacora-publica' || pathname.startsWith('/bitacora-publica/');
 
   if (isPublicBitacora) {
     return (

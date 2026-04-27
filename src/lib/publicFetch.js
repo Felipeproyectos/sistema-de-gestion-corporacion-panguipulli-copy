@@ -5,6 +5,7 @@
 const APP_ID = import.meta.env.VITE_BASE44_APP_ID;
 
 export async function invokePublic(functionName, payload = {}) {
+  // Intentar con ruta relativa primero (funciona en mismo dominio)
   const res = await fetch(`/api/apps/${APP_ID}/functions/prod/${functionName}`, {
     method: "POST",
     headers: {
@@ -13,7 +14,14 @@ export async function invokePublic(functionName, payload = {}) {
     },
     body: JSON.stringify(payload),
   });
-  const data = await res.json();
+
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error(`Error ${res.status}: respuesta no válida del servidor`);
+  }
+
   if (!res.ok) throw new Error(data?.error || `Error ${res.status}`);
   return data;
 }
