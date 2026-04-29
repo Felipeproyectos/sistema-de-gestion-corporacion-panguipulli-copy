@@ -25,7 +25,7 @@ export default function Bienvenida() {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%)" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1a3a5c 0%, #0d2137 100%)" }}>
         <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
       </div>
     );
@@ -34,7 +34,7 @@ export default function Bienvenida() {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%)" }}
+      style={{ background: "linear-gradient(135deg, #1a3a5c 0%, #0d2137 100%)" }}
     >
       {/* Círculos decorativos de fondo */}
       <div
@@ -90,7 +90,7 @@ export default function Bienvenida() {
           <button
             onClick={handleLogin}
             className="w-full flex items-center justify-center gap-3 py-3 px-6 rounded-xl font-semibold text-white transition-all duration-200 hover:opacity-90 active:scale-95 shadow-lg"
-            style={{ background: "linear-gradient(135deg, #1d4ed8, #2563eb)" }}
+            style={{ background: "linear-gradient(135deg, #1a3a5c, #1d4ed8)" }}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
