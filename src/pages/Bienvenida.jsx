@@ -50,47 +50,59 @@ export default function Bienvenida() {
         style={{ background: "rgba(255,255,255,0.04)", transform: "translate(-50%, -50%)" }}
       />
 
-      {/* Contenido central */}
-      <div className="relative z-10 flex flex-col items-center w-full max-w-sm mx-4 px-4">
-
-        {/* Logo */}
-        <div className="mb-6 flex items-center justify-center">
-          <div
-            className="bg-white rounded-2xl shadow-2xl flex items-center justify-center"
-            style={{ width: 120, height: 120, padding: 16 }}
-          >
+      {/* Tarjeta central */}
+      <div
+        className="relative z-10 flex flex-col items-center w-full mx-4"
+        style={{ maxWidth: 400 }}
+      >
+        <div
+          className="bg-white w-full flex flex-col items-center px-10 py-10 gap-6"
+          style={{
+            borderRadius: 24,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.15)",
+          }}
+        >
+          {/* Logo */}
+          <div className="flex items-center justify-center" style={{ width: 100, height: 100 }}>
             <img
               src={LOGO_URL}
               alt="Logo Corporación de Salud"
               className="w-full h-full object-contain"
               onError={(e) => {
-                e.target.parentElement.innerHTML = `<div style="font-size:36px">🏥</div>`;
+                e.target.parentElement.innerHTML = `<div style="font-size:40px">🏥</div>`;
               }}
             />
           </div>
-        </div>
 
-        {/* Título institucional */}
-        <h1 className="text-white text-2xl font-bold text-center mb-1 tracking-tight">
-          Sistema de Gestión
-        </h1>
-        <p className="text-center mb-8" style={{ color: "rgba(191,219,254,0.9)", fontSize: 14 }}>
-          Corporación Municipal de Salud de Panguipulli
-        </p>
-
-        {/* Card de login */}
-        <div className="bg-white rounded-2xl shadow-2xl w-full px-8 py-8 flex flex-col items-center gap-5">
+          {/* Título institucional */}
           <div className="text-center">
-            <h2 className="text-gray-800 text-lg font-semibold">Bienvenido/a</h2>
-            <p className="text-gray-500 text-sm mt-1">
-              Inicia sesión para acceder al sistema Bitácora
+            <h1 className="text-gray-900 text-xl font-bold tracking-tight mb-1">
+              Sistema de Gestión
+            </h1>
+            <p className="text-gray-500 text-sm">
+              Corporación Municipal de Salud de Panguipulli
             </p>
           </div>
 
+          {/* Divisor */}
+          <div className="w-full h-px bg-gray-100" />
+
+          {/* Bienvenida */}
+          <div className="text-center">
+            <h2 className="text-gray-700 text-base font-medium">Bienvenido/a</h2>
+            <p className="text-gray-400 text-sm mt-0.5">
+              Inicia sesión para acceder al sistema
+            </p>
+          </div>
+
+          {/* Botón login */}
           <button
             onClick={handleLogin}
-            className="w-full flex items-center justify-center gap-3 py-3 px-6 rounded-xl font-semibold text-white transition-all duration-200 hover:opacity-90 active:scale-95 shadow-lg"
-            style={{ background: "linear-gradient(135deg, #1a3a5c, #1d4ed8)" }}
+            className="w-full flex items-center justify-center gap-3 py-3 px-6 rounded-xl font-semibold text-white transition-all duration-200 hover:opacity-90 active:scale-95"
+            style={{
+              background: "linear-gradient(135deg, #1a3a5c, #1d4ed8)",
+              boxShadow: "0 4px 14px rgba(26,58,92,0.4)",
+            }}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -99,8 +111,9 @@ export default function Bienvenida() {
             Iniciar Sesión
           </button>
 
+          {/* Nota de acceso */}
           <div className="flex items-center gap-2 text-xs text-gray-400">
-            <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
@@ -109,7 +122,7 @@ export default function Bienvenida() {
         </div>
 
         {/* Footer */}
-        <p className="mt-8 text-center" style={{ color: "rgba(147,197,253,0.6)", fontSize: 12 }}>
+        <p className="mt-6 text-center" style={{ color: "rgba(147,197,253,0.6)", fontSize: 12 }}>
           Bitácora · Gestión de Equipos Médicos
         </p>
       </div>
