@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Activity, Search, History, Plus, Edit2, Trash2, ChevronDown } from "lucide-react";
+import { Activity, Search, History, Plus, Edit2, Trash2 } from "lucide-react";
 import { TIPOS_ACTIVIDAD, CENTROS_ESTRUCTURA } from "@/lib/centros";
 import NativePicker from "@/components/NativePicker";
 import { format } from "date-fns";
@@ -42,9 +42,9 @@ export default function Actividades() {
 
   useEffect(() => {
     Promise.all([
-      base44.entities.Actividad.list("-fecha", 200),
-      base44.entities.Equipo.list(),
-      base44.entities.Historial.list("-created_date", 200),
+      base44.entities.Actividad.list("-fecha", 200).catch(() => []),
+      base44.entities.Equipo.list().catch(() => []),
+      base44.entities.Historial.list("-created_date", 200).catch(() => []),
     ]).then(([acts, eqs, hist]) => {
       setActividades(acts);
       setEquipos(eqs);
@@ -247,11 +247,11 @@ export default function Actividades() {
                 </div>
               ) : filtradosHist.map(r => {
                 const cfg = ACCION_CONFIG[r.accion] || ACCION_CONFIG.editar;
-                const { Icon } = cfg;
+                const AccionIcon = cfg.Icon;
                 return (
                   <div key={r.id} className="bg-white rounded-2xl shadow border border-slate-100 px-5 py-4 flex items-start gap-4 hover:shadow-md transition-shadow">
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: cfg.bg }}>
-                      <Icon className="w-4 h-4" style={{ color: cfg.text }} />
+                      <AccionIcon className="w-4 h-4" style={{ color: cfg.text }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-slate-900 leading-snug">{r.descripcion}</p>
