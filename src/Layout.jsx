@@ -8,7 +8,7 @@ import {
   Monitor,
   ClipboardList,
   ClipboardCheck,
-  Users,
+  Users,h
   Menu,
   X,
   LogOut,
@@ -41,8 +41,7 @@ export default function Layout({ children, currentPageName }) {
   const navItems = [
   { label: "Dashboard", page: "Dashboard", icon: LayoutDashboard, adminOnly: false },
   { label: "Equipos", page: "Equipos2", icon: Monitor, adminOnly: false },
-  { label: "Actividades", page: "Actividades", icon: Activity, adminOnly: false },
-  { label: "Alertas", page: "AlertasV2", icon: Bell, adminOnly: false },
+    { label: "Alertas", page: "AlertasV2", icon: Bell, adminOnly: false },
   { label: "Solicitudes", page: "SolicitudesV2", icon: ClipboardList, adminOnly: false },
   { label: "Reportes", page: "Reportes", icon: FileText, adminOnly: false },
   { label: "Historial", page: "Historial", icon: History, adminOnly: true },
