@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { invokePublic } from "@/lib/publicFetch";
-import { Loader2, AlertTriangle, Send, CheckCircle, ChevronDown, ChevronUp, Activity } from "lucide-react";
+import { Loader2, AlertTriangle, Send, ChevronDown, ChevronUp } from "lucide-react";
 
 const ITEMS_CHECKLIST = [
   "Cables y conexiones en buen estado",
@@ -23,12 +23,10 @@ const ESTADOS = [
 
 function initChecklist() {
   return ITEMS_CHECKLIST.reduce((acc, item) => {
-    acc[item] = "";
+    acc[item] = { estado: "", obs: "", abierto: false };
     return acc;
   }, {});
 }
-
-const GRUPOS_CHECKLIST = null; // no usado en este componente
 
 export default function PautaSemanalDesfibrilador({ equipos, loading, onSuccess, equipoFijo }) {
   const [equipo_id, setEquipoId] = useState(equipoFijo?.id || "");
@@ -41,12 +39,23 @@ export default function PautaSemanalDesfibrilador({ equipos, loading, onSuccess,
 
   const equipo = (equipos || []).find(e => e.id === equipo_id) || equipoFijo;
 
-  const pendientes = ITEMS_CHECKLIST.filter(i => !checklist[i]).length;
-  const malos = ITEMS_CHECKLIST.filter(i => checklist[i] === "malo");
+  const pendientes = ITEMS_CHECKLIST.filter(i => !checklist[i].estado).length;
+  const malos = ITEMS_CHECKLIST.filter(i => checklist[i].estado === "malo");
   const hasFallas = malos.length > 0;
 
   const handleCheck = (item, value) => {
-    setChecklist(prev => ({ ...prev, [item]: value }));
+    setChecklist(prev => ({
+      ...prev,
+      [item]: { ...prev[item], estado: prev[item].estado === value ? "" : value }
+    }));
+  };
+
+  const handleObs = (item, obs) => {
+    setChecklist(prev => ({ ...prev, [item]: { ...prev[item], obs } }));
+  };
+
+  const toggleItem = (item) => {
+    setChecklist(prev => ({ ...prev, [item]: { ...prev[item], abierto: !prev[item].abierto } }));
   };
 
   const handleSubmit = async () => {
@@ -70,6 +79,9 @@ export default function PautaSemanalDesfibrilador({ equipos, loading, onSuccess,
     if (descripcion.trim()) obsLines.push(`Descripción: ${descripcion.trim()}`);
     const observaciones = obsLines.join(" | ") || "Sin observaciones";
 
+    const checklistData = {};
+    ITEMS_CHECKLIST.forEach(i => { checklistData[i] = { estado: checklist[i].estado, obs: checklist[i].obs }; });
+
     const targetId = equipoFijo?.id || equipo_id;
     const equipoLabel = equipoFijo
       ? `${equipoFijo.marca} ${equipoFijo.modelo}`
@@ -83,7 +95,7 @@ export default function PautaSemanalDesfibrilador({ equipos, loading, onSuccess,
         conductor: responsable,
         fecha,
         observaciones,
-        checklist,
+        checklist: checklistData,
         descripcion,
       });
       setSaving(false);
@@ -180,42 +192,48 @@ export default function PautaSemanalDesfibrilador({ equipos, loading, onSuccess,
 
         <div className="divide-y divide-slate-50">
           {ITEMS_CHECKLIST.map(item => {
-            const val = checklist[item];
+            const val = checklist[item].estado;
+            const obs = checklist[item].obs;
+            const abierto = checklist[item].abierto;
             const missing = !val;
             return (
-              <div
-                key={item}
-                className="grid items-center px-4 py-3.5 gap-2"
-                style={{
-                  gridTemplateColumns: "1fr 60px 60px 60px",
-                  background: val === "malo" ? "#FFF5F5" : "white"
-                }}>
-                <span className="text-sm text-slate-700 flex items-center gap-1.5" style={{ fontFamily: "Manrope, sans-serif" }}>
-                  {missing && <span className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0 inline-block" />}
-                  {item}
-                </span>
-                {ESTADOS.map(({ value, label }) => {
-                  const active = val === value;
-                  const activeColor = value === "ok" ? "#16A34A" : value === "malo" ? "#DC2626" : "#94A3B8";
-                  const activeBg = value === "ok" ? "#F0FDF4" : value === "malo" ? "#FEF2F2" : "#F8FAFC";
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => handleCheck(item, active ? "" : value)}
-                      className="flex items-center justify-center mx-auto rounded-lg transition-all"
-                      style={{
-                        width: 40, height: 34,
-                        background: active ? activeBg : "#F8FAFC",
-                        border: `2px solid ${active ? activeColor : "#E2E8F0"}`,
-                        color: active ? activeColor : "#CBD5E1",
-                        fontWeight: "bold",
-                        fontSize: 11,
-                      }}>
-                      {active ? (value === "ok" ? "✓" : value === "malo" ? "✗" : "N/A") : label}
-                    </button>
-                  );
-                })}
+              <div key={item} style={{ background: val === "malo" ? "#FFF5F5" : "white" }}>
+                <div className="flex items-center px-4 py-3 gap-2">
+                  <span className="flex-1 text-sm text-slate-700 flex items-center gap-1.5">
+                    {missing && <span className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0 inline-block" />}
+                    {item}
+                  </span>
+                  <div className="flex gap-1.5 flex-shrink-0">
+                    {ESTADOS.map(({ value, label }) => {
+                      const active = val === value;
+                      const activeColor = value === "ok" ? "#16A34A" : value === "malo" ? "#DC2626" : "#94A3B8";
+                      const activeBg = value === "ok" ? "#F0FDF4" : value === "malo" ? "#FEF2F2" : "#F8FAFC";
+                      return (
+                        <button key={value} type="button" onClick={() => handleCheck(item, value)}
+                          className="rounded-lg transition-all text-xs font-bold"
+                          style={{
+                            width: 44, height: 32,
+                            background: active ? activeBg : "#F8FAFC",
+                            border: `2px solid ${active ? activeColor : "#E2E8F0"}`,
+                            color: active ? activeColor : "#CBD5E1",
+                          }}>
+                          {active ? (value === "ok" ? "✓" : value === "malo" ? "✗" : "N/A") : label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button type="button" onClick={() => toggleItem(item)}
+                    className="ml-1 text-slate-300 hover:text-slate-500 transition-colors">
+                    {abierto ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                </div>
+                {abierto && (
+                  <div className="px-4 pb-3">
+                    <textarea rows={2} placeholder="Observación (opcional)..."
+                      value={obs} onChange={e => handleObs(item, e.target.value)}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs bg-slate-50 focus:outline-none focus:ring-1 focus:ring-purple-300 resize-none" />
+                  </div>
+                )}
               </div>
             );
           })}

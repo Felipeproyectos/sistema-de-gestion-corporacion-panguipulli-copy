@@ -30,7 +30,6 @@ const GRUPOS_CHECKLIST = [
   {
     label: "Electrodos",
     items: [
-      "Electrodos disponibles (pediátricos y adultos)",
       "Empaque sellado e íntegro",
       "Fecha de vencimiento vigente (electrodos)",
     ],
@@ -60,7 +59,7 @@ function initChecklist() {
 
 function initParches() {
   return GRUPOS_PARCHES.reduce((acc, p) => {
-    acc[p.key] = { estado: "", obs: "", abierto: false };
+    acc[p.key] = { estado: "", obs: "", cantidad: "", abierto: false };
     return acc;
   }, {});
 }
@@ -109,6 +108,10 @@ export default function PautaSemanalDEA({ equipos, loading, onSuccess, equipoFij
 
   const handleParcheObs = (key, obs) => {
     setParches(prev => ({ ...prev, [key]: { ...prev[key], obs } }));
+  };
+
+  const handleParcheCantidad = (key, cantidad) => {
+    setParches(prev => ({ ...prev, [key]: { ...prev[key], cantidad } }));
   };
 
   const toggleParche = (key) => {
@@ -289,16 +292,17 @@ export default function PautaSemanalDEA({ equipos, loading, onSuccess, equipoFij
         ))}
       </div>
 
-      {/* Sección Parches */}
+      {/* Sección Electrodos y Parches — unificada */}
       <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #E2E8F0" }}>
         <div className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest"
           style={{ borderBottom: "1px solid #E2E8F0", background: "#F8FAFC" }}>
-          Estado de Parches / Electrodos
+          Electrodos / Parches
         </div>
         <div className="divide-y divide-slate-50">
           {GRUPOS_PARCHES.map(p => {
             const val = parches[p.key].estado;
             const obs = parches[p.key].obs;
+            const cantidad = parches[p.key].cantidad;
             const abierto = parches[p.key].abierto;
             const missing = !val;
             return (
@@ -315,7 +319,13 @@ export default function PautaSemanalDEA({ equipos, loading, onSuccess, equipoFij
                   </button>
                 </div>
                 {abierto && (
-                  <div className="px-4 pb-3">
+                  <div className="px-4 pb-3 space-y-2">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500 mb-1 block">Cantidad disponible</label>
+                      <input type="number" min="0" placeholder="Ej: 2"
+                        value={cantidad} onChange={e => handleParcheCantidad(p.key, e.target.value)}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs bg-slate-50 focus:outline-none focus:ring-1 focus:ring-amber-300" />
+                    </div>
                     <textarea rows={2} placeholder="Observación (opcional)..."
                       value={obs} onChange={e => handleParcheObs(p.key, e.target.value)}
                       className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs bg-slate-50 focus:outline-none focus:ring-1 focus:ring-amber-300 resize-none" />
