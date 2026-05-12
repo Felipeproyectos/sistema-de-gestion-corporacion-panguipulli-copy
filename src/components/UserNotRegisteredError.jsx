@@ -1,27 +1,57 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { ShieldX, LogOut, Mail } from 'lucide-react';
 
 const UserNotRegisteredError = () => {
+  const [email, setEmail] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setEmail(u?.email || null)).catch(() => {});
+  }, []);
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-white to-slate-50">
-      <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-lg border border-slate-100">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-orange-100">
-            <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
+    <div className="flex flex-col items-center justify-center min-h-screen px-4"
+      style={{ background: "linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 100%)" }}>
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
+        {/* Header azul institucional */}
+        <div className="px-8 py-6 flex flex-col items-center"
+          style={{ background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" }}>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3"
+            style={{ background: "rgba(255,255,255,0.2)" }}>
+            <ShieldX className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-4">Access Restricted</h1>
-          <p className="text-slate-600 mb-8">
-            You are not registered to use this application. Please contact the app administrator to request access.
+          <h1 className="text-xl font-bold text-white text-center">Acceso No Autorizado</h1>
+          <p className="text-blue-100 text-sm text-center mt-1">Sistema de Gestión de Equipos Médicos</p>
+        </div>
+
+        {/* Cuerpo */}
+        <div className="px-8 py-7 space-y-5">
+          <p className="text-slate-700 text-sm text-center leading-relaxed">
+            Tu cuenta <strong>no tiene acceso autorizado</strong> a esta aplicación. Si crees que esto es un error, contacta al administrador del sistema.
           </p>
-          <div className="p-4 bg-slate-50 rounded-md text-sm text-slate-600">
-            <p>If you believe this is an error, you can:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Verify you are logged in with the correct account</li>
-              <li>Contact the app administrator for access</li>
-              <li>Try logging out and back in again</li>
-            </ul>
+
+          {email && (
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
+              style={{ background: "#EFF6FF", border: "1px solid #BFDBFE" }}>
+              <Mail className="w-4 h-4 text-blue-500 flex-shrink-0" />
+              <span className="text-blue-700 font-medium truncate">{email}</span>
+            </div>
+          )}
+
+          <div className="text-xs text-slate-500 space-y-1 px-1">
+            <p className="font-semibold text-slate-600 mb-2">¿Qué puedes hacer?</p>
+            <p>• Verifica que estás usando la cuenta correcta.</p>
+            <p>• Solicita acceso al administrador de la plataforma.</p>
+            <p>• Cierra sesión e intenta con otra cuenta.</p>
           </div>
+
+          <button
+            onClick={() => base44.auth.logout()}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" }}>
+            <LogOut className="w-4 h-4" />
+            Cerrar Sesión
+          </button>
         </div>
       </div>
     </div>
