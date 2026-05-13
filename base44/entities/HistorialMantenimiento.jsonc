@@ -69,8 +69,16 @@
     "resultado"
   ],
   "rls": {
-    "create": false,
-    "read": true,
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
     "update": {
       "user_condition": {
         "role": "admin"
