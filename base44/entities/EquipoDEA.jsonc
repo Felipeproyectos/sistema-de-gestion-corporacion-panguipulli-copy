@@ -1,0 +1,94 @@
+{
+  "name": "EquipoDEA",
+  "type": "object",
+  "properties": {
+    "marca": {
+      "type": "string"
+    },
+    "modelo": {
+      "type": "string"
+    },
+    "numero_serie": {
+      "type": "string"
+    },
+    "anio_adquisicion": {
+      "type": "number"
+    },
+    "establecimiento": {
+      "type": "string"
+    },
+    "lugar_destinado": {
+      "type": "string"
+    },
+    "valor": {
+      "type": "number"
+    },
+    "orden_compra_url": {
+      "type": "string",
+      "description": "URL del PDF de orden de compra o factura"
+    },
+    "foto_url": {
+      "type": "string",
+      "description": "URL de la fotograf\u00eda del equipo"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "operativo",
+        "mantenimiento",
+        "fuera_de_servicio"
+      ],
+      "default": "operativo"
+    },
+    "usuarios_asignados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails de usuarios que pueden ver este equipo"
+    },
+    "notas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "marca",
+    "modelo",
+    "numero_serie",
+    "establecimiento"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.usuarios_asignados": "{{user.email}}"
+        },
+        {
+          "data.establecimiento": {
+            "$in": "{{user.data.centros_asignados}}"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
