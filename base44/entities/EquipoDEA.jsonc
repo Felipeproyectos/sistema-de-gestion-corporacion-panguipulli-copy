@@ -71,39 +71,19 @@
           }
         },
         {
-          "data.establecimiento": {
-            "$in": "{{user.data.centros_asignados}}"
-          }
+          "data.usuarios_asignados": "{{user.email}}"
         },
         {
-          "data.usuarios_asignados": {
-            "$in": [
-              "{{user.email}}"
-            ]
+          "data.establecimiento": {
+            "$in": "{{user.data.centros_asignados}}"
           }
         }
       ]
     },
     "update": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "data.establecimiento": {
-            "$in": "{{user.data.centros_asignados}}"
-          }
-        },
-        {
-          "data.usuarios_asignados": {
-            "$in": [
-              "{{user.email}}"
-            ]
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
       "user_condition": {
