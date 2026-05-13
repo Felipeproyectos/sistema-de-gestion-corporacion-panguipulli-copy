@@ -1,0 +1,43 @@
+{
+  "name": "ConfigAlerta",
+  "type": "object",
+  "properties": {
+    "cesfam": {
+      "type": "string",
+      "description": "Nombre del CESFAM o centro de salud"
+    },
+    "emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de correos electr\u00f3nicos para alertas"
+    }
+  },
+  "required": [
+    "cesfam",
+    "emails"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
