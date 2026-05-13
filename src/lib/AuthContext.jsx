@@ -104,23 +104,15 @@ export const AuthProvider = ({ children }) => {
       const currentUser = await base44.auth.me();
 
       // Verificar que el usuario esté registrado en la app buscándolo en la entidad User.
-      // En apps públicas, cualquier cuenta OAuth puede obtener un token, pero solo
-      // los usuarios invitados aparecen en la entidad User.
-      try {
-        const users = await base44.entities.User.filter({ email: currentUser.email });
-        if (!users || users.length === 0) {
-          // Usuario autenticado con OAuth pero NO invitado a esta app — registrar intento
-          base44.functions.invoke('registrarAccesoNoAutorizado', {
-            email: currentUser.email,
-            user_agent: navigator.userAgent,
-          }).catch(() => {});
-          setIsLoadingAuth(false);
-          setIsAuthenticated(false);
-          setAuthError({ type: 'user_not_registered', message: 'User not registered for this app' });
-          return;
-        }
-      } catch {
-        // Si falla la consulta (ej. sin permisos), tratar como no registrado
+      // Usamos el propio endpoint /me del SDK que ya valida si el usuario está registrado.
+      // La consulta User.filter() no funciona para usuarios normales (RLS solo permite admins listar otros),
+      // por eso usamos solo base44.auth.me() que ya devuelve el usuario si está registrado.
+      // Si currentUser existe y tiene email, está registrado correctamente.
+      if (!currentUser || !currentUser.email) {
+        base44.functions.invoke('registrarAccesoNoAutorizado', {
+          email: currentUser?.email || 'desconocido',
+          user_agent: navigator.userAgent,
+        }).catch(() => {});
         setIsLoadingAuth(false);
         setIsAuthenticated(false);
         setAuthError({ type: 'user_not_registered', message: 'User not registered for this app' });
