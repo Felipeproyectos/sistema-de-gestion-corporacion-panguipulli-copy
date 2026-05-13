@@ -21,6 +21,7 @@ export default function Configuracion() {
   const [centros, setCentros]   = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDeleteUserId, setConfirmDeleteUserId] = useState(null);
 
   useEffect(() => {
     const init = async () => {
@@ -102,6 +103,12 @@ export default function Configuracion() {
     await base44.entities.User.update(userId, data);
     setUsuarios(prev => prev.map(u => u.id === userId ? { ...u, ...data } : u));
     setEditingUser(null);
+  };
+
+  const handleDeleteUser = async (userId) => {
+    await base44.entities.User.delete(userId);
+    setUsuarios(prev => prev.filter(u => u.id !== userId));
+    setConfirmDeleteUserId(null);
   };
 
   if (!user) return <div className="flex items-center justify-center min-h-screen"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
@@ -246,9 +253,22 @@ export default function Configuracion() {
                         </div>
                       )}
                     </div>
-                    <button onClick={() => setEditingUser({ ...u })} className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600">
-                      <Edit2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => setEditingUser({ ...u })} className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600">
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      {confirmDeleteUserId === u.id ? (
+                        <div className="flex items-center gap-1.5 ml-1 bg-red-50 border border-red-200 rounded-xl px-3 py-1.5">
+                          <span className="text-xs text-red-700 font-medium">¿Eliminar?</span>
+                          <button onClick={() => handleDeleteUser(u.id)} className="text-xs font-bold text-red-600 hover:text-red-800 underline">Sí</button>
+                          <button onClick={() => setConfirmDeleteUserId(null)} className="text-xs text-slate-400 hover:text-slate-600 underline">No</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => setConfirmDeleteUserId(u.id)} className="p-2 rounded-lg hover:bg-red-50 text-slate-300 hover:text-red-500">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </>
                 )}
               </div>
