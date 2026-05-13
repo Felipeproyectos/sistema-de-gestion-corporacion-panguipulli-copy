@@ -49,7 +49,7 @@
     "descripcion"
   ],
   "rls": {
-    "create": true,
+    "create": {},
     "read": {
       "$or": [
         {
@@ -63,14 +63,28 @@
       ]
     },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.solicitante_email": "{{user.email}}"
+        }
+      ]
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.solicitante_email": "{{user.email}}"
+        }
+      ]
     }
   }
 }
