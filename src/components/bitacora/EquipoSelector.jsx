@@ -17,7 +17,6 @@ export default function EquipoSelector({ equipos, value, onChange, placeholder =
   const label = (eq) => {
     let base = `${eq.marca} ${eq.modelo}`;
     if (eq.patente) base += ` — ${eq.patente}`;
-    if (eq.numero_serie) base += ` · S/N: ${eq.numero_serie}`;
     return base;
   };
 
