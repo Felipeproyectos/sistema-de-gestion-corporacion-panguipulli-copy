@@ -421,6 +421,19 @@ export default function RevisionInspecciones() {
   const filtradas = inspecciones.filter(i => filtro === "todos" || i.estado === filtro);
   const pendientes = inspecciones.filter(i => i.estado === "pendiente").length;
 
+  // Agrupar por centro principal
+  const porCentro = filtradas.reduce((acc, insp) => {
+    let centro = "Sin centro";
+    try {
+      const datos = insp.datos_json ? JSON.parse(insp.datos_json) : {};
+      centro = datos.equipo?.centro_principal || "Sin centro";
+    } catch {}
+    if (!acc[centro]) acc[centro] = [];
+    acc[centro].push(insp);
+    return acc;
+  }, {});
+  const centrosOrdenados = Object.keys(porCentro).sort((a, b) => a.localeCompare(b, "es"));
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 lg:p-8">
       <div className="max-w-3xl mx-auto">
@@ -464,9 +477,24 @@ export default function RevisionInspecciones() {
             <p className="text-slate-400 text-sm">No hay registros {filtro !== "todos" ? `con estado "${filtro}"` : ""}.</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {filtradas.map(insp => (
-              <InspeccionCard key={insp.id} insp={insp} onActualizar={cargar} />
+          <div className="space-y-6">
+            {centrosOrdenados.map(centro => (
+              <div key={centro}>
+                {/* Encabezado de centro */}
+                <div className="flex items-center gap-2 mb-3">
+                  <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                  <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">{centro}</h2>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "#EFF6FF", color: "#1D4ED8" }}>
+                    {porCentro[centro].length}
+                  </span>
+                  <div className="flex-1 h-px" style={{ background: "#E2E8F0" }} />
+                </div>
+                <div className="space-y-3">
+                  {porCentro[centro].map(insp => (
+                    <InspeccionCard key={insp.id} insp={insp} onActualizar={cargar} />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}

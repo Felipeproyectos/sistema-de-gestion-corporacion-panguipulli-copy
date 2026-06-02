@@ -32,15 +32,5 @@
   "required": [
     "nombre",
     "tipo"
-  ],
-  "rls": {
-    "create": {
-      "user_condition": {
-        "role": "admin"
-      }
-    },
-    "read": true,
-    "update": null,
-    "delete": null
-  }
+  ]
 }

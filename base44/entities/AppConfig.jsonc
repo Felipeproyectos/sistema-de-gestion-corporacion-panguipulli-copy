@@ -1,0 +1,37 @@
+{
+  "name": "AppConfig",
+  "type": "object",
+  "properties": {
+    "nombre_app": {
+      "type": "string",
+      "description": "Nombre de la aplicaci\u00f3n"
+    },
+    "subtitulo": {
+      "type": "string",
+      "description": "Subt\u00edtulo o descripci\u00f3n corta"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL de la imagen del logo"
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": true,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

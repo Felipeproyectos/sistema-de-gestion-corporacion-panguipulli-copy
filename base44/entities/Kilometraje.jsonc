@@ -32,7 +32,7 @@
     "valor_km"
   ],
   "rls": {
-    "create": true,
+    "create": {},
     "read": {
       "$or": [
         {

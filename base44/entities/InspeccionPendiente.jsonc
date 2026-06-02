@@ -72,11 +72,7 @@
   ],
   "rls": {
     "create": true,
-    "read": {
-      "user_condition": {
-        "role": "admin"
-      }
-    },
+    "read": true,
     "update": {
       "user_condition": {
         "role": "admin"

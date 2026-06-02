@@ -55,7 +55,7 @@
     "fecha"
   ],
   "rls": {
-    "create": {},
+    "create": true,
     "read": {
       "$or": [
         {
@@ -64,33 +64,19 @@
           }
         },
         {
-          "data.usuario_email": "{{user.email}}"
+          "created_by": "{{user.email}}"
         }
       ]
     },
     "update": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "data.usuario_email": "{{user.email}}"
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "data.usuario_email": "{{user.email}}"
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     }
   }
 }
