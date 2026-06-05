@@ -110,7 +110,7 @@ export default function Dashboard() {
                 <Activity className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
               </div>
               <div>
-                <p className="text-cyan-200 text-[10px] lg:text-xs font-semibold uppercase tracking-widest hidden sm:block">Sistema de Gestión de Equipos</p>
+                <p className="text-cyan-200 text-[10px] lg:text-xs font-semibold uppercase tracking-widest hidden sm:block">Sistema de Gestión de Equipos Críticos</p>
                 <h1 className="text-xl lg:text-4xl font-bold text-white leading-tight">Dashboard</h1>
                 <p className="text-blue-100 text-xs lg:text-sm mt-0.5">Hola, {user?.full_name?.split(" ")[0] || "Usuario"}</p>
               </div>
