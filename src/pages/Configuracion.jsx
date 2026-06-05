@@ -66,7 +66,7 @@ export default function Configuracion() {
     }
     setSaving(false);
     setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    setTimeout(() => window.location.reload(), 1200);
   };
 
   const toggleInvCentro = (nombre) => {
