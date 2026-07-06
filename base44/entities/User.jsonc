@@ -6,9 +6,26 @@
       "type": "string",
       "enum": [
         "admin",
-        "user"
+        "user",
+        "super_admin",
+        "monitor_corporativo",
+        "admin_salud",
+        "jefe_taller",
+        "mecanico",
+        "supervisor",
+        "operador"
       ],
-      "default": "user"
+      "default": "user",
+      "description": "Rol jer\u00e1rquico del usuario en el sistema"
+    },
+    "area": {
+      "type": "string",
+      "enum": [
+        "salud",
+        "taller",
+        "ambas"
+      ],
+      "description": "\u00c1rea operativa principal del usuario"
     },
     "centro_asignado": {
       "type": "string",

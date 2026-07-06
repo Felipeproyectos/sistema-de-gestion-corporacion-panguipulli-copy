@@ -17,7 +17,8 @@ import {
   History,
   Activity,
   FileText,
-  ShieldX } from
+  ShieldX,
+  Wrench } from
 "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import useDarkMode from "@/hooks/useDarkMode";
@@ -47,6 +48,7 @@ export default function Layout({ children, currentPageName }) {
   { label: "Historial", page: "Historial", icon: History, adminOnly: true },
   { label: "Configuración", page: "Configuracion", icon: Settings, adminOnly: true },
   { label: "Revisión Bitácora", page: "RevisionInspecciones", icon: ClipboardList, adminOnly: false },
+  { label: "Taller", page: "Taller", icon: Wrench, adminOnly: false },
   { label: "Accesos No Autorizados", page: "AccesosNoAutorizados", icon: ShieldX, adminOnly: true }];
 
 

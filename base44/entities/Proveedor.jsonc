@@ -1,0 +1,111 @@
+{
+  "name": "Proveedor",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre o raz\u00f3n social del proveedor"
+    },
+    "rut": {
+      "type": "string",
+      "description": "RUT del proveedor"
+    },
+    "rubro": {
+      "type": "string",
+      "enum": [
+        "repuestos",
+        "neumaticos",
+        "lubricantes",
+        "servicio_tecnico",
+        "otros"
+      ],
+      "description": "Rubro principal del proveedor"
+    },
+    "contacto_nombre": {
+      "type": "string",
+      "description": "Nombre de la persona de contacto"
+    },
+    "telefono": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "direccion": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "web": {
+      "type": "string",
+      "description": "Sitio web del proveedor"
+    },
+    "notas": {
+      "type": "string"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "nombre",
+    "rubro"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "jefe_taller"
+          }
+        }
+      ]
+    },
+    "read": true,
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "jefe_taller"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    }
+  }
+}
