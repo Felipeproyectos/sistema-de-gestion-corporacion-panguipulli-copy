@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   Wrench, Car, ClipboardList, CheckCircle2, AlertTriangle,
-  Package, Plus, RefreshCw, TrendingUp, Clock, Activity
+  Package, Plus, RefreshCw, TrendingUp, Clock, Activity,
+  ChevronRight, Building2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -178,10 +179,11 @@ export default function Taller() {
               <div className="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center">
                 <Package className="w-4 h-4 text-red-600" />
               </div>
-              <h2 className="font-bold text-red-800 text-sm flex items-center gap-2">
+              <h2 className="font-bold text-red-800 text-sm flex items-center gap-2 flex-1">
                 Repuestos Stock Bajo
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">{stockBajo.length}</span>
               </h2>
+              <Link to={createPageUrl("Repuestos")} className="text-xs text-red-600 font-semibold flex items-center gap-1 hover:gap-2 transition-all">Ver <ChevronRight className="w-3 h-3" /></Link>
             </div>
             <div className="divide-y divide-slate-50">
               {stockBajo.length === 0 ? (
@@ -203,6 +205,18 @@ export default function Taller() {
               ))}
             </div>
           </div>
+
+          {/* Acceso a Proveedores */}
+          <Link to={createPageUrl("Proveedores")} className="bg-white rounded-2xl shadow-lg p-5 flex items-center gap-3 hover:shadow-xl transition-all" style={{ boxShadow: "0 8px 32px rgba(21,101,192,0.08)" }}>
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#EFF6FF" }}>
+              <Building2 className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-slate-800 text-sm">Proveedores</p>
+              <p className="text-xs text-slate-400">Gestionar directorio</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-300" />
+          </Link>
 
           {/* Resumen de costos */}
           <div className="bg-white rounded-2xl shadow-lg p-5" style={{ boxShadow: "0 8px 32px rgba(21,101,192,0.08)" }}>

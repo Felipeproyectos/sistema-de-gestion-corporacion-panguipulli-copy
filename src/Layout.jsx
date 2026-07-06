@@ -18,7 +18,8 @@ import {
   Activity,
   FileText,
   ShieldX,
-  Wrench } from
+  Wrench,
+  Package } from
 "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import useDarkMode from "@/hooks/useDarkMode";
@@ -49,6 +50,8 @@ export default function Layout({ children, currentPageName }) {
   { label: "Configuración", page: "Configuracion", icon: Settings, adminOnly: true },
   { label: "Revisión Bitácora", page: "RevisionInspecciones", icon: ClipboardList, adminOnly: false },
   { label: "Taller", page: "Taller", icon: Wrench, adminOnly: false },
+  { label: "Proveedores", page: "Proveedores", icon: Building2, adminOnly: true },
+  { label: "Repuestos", page: "Repuestos", icon: Package, adminOnly: true },
   { label: "Accesos No Autorizados", page: "AccesosNoAutorizados", icon: ShieldX, adminOnly: true }];
 
 

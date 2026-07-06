@@ -20,6 +20,8 @@ import RevisionInspecciones from './pages/RevisionInspecciones';
 import Bienvenida from './pages/Bienvenida';
 import AccesosNoAutorizados from './pages/AccesosNoAutorizados';
 import Taller from './pages/Taller';
+import Proveedores from './pages/Proveedores';
+import Repuestos from './pages/Repuestos';
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
@@ -107,6 +109,8 @@ const AuthenticatedApp = () => {
       <Route path="/RevisionInspecciones" element={<LayoutWrapper currentPageName="RevisionInspecciones"><PageWrapper><RevisionInspecciones /></PageWrapper></LayoutWrapper>} />
       <Route path="/AccesosNoAutorizados" element={<LayoutWrapper currentPageName="AccesosNoAutorizados"><PageWrapper><AccesosNoAutorizados /></PageWrapper></LayoutWrapper>} />
       <Route path="/Taller" element={<LayoutWrapper currentPageName="Taller"><PageWrapper><Taller /></PageWrapper></LayoutWrapper>} />
+      <Route path="/Proveedores" element={<LayoutWrapper currentPageName="Proveedores"><PageWrapper><Proveedores /></PageWrapper></LayoutWrapper>} />
+      <Route path="/Repuestos" element={<LayoutWrapper currentPageName="Repuestos"><PageWrapper><Repuestos /></PageWrapper></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </AnimatedRoutes>
   );
