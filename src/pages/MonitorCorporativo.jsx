@@ -55,7 +55,7 @@ export default function MonitorCorporativo() {
   const containerRef = useRef(null);
 
   const fetchData = useCallback(async () => {
-    const [equipos, parches, alertas, solicitudes, inspecciones, ordenes, repuestos, proveedores] = await Promise.all([
+    const [equipos, parches, alertas, solicitudes, inspecciones, ordenes, repuestos, proveedores, centros] = await Promise.all([
       base44.entities.Equipo.list().catch(() => []),
       base44.entities.Parche.list().catch(() => []),
       base44.entities.Alerta.filter({ estado: "activa" }).catch(() => []),
