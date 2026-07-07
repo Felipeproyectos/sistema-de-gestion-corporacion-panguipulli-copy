@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { getNavItemsForRole } from "@/lib/navPermissions";
+import { getEffectiveNavRole } from "@/lib/roleSimulator";
 
 export default function MobileNav() {
   const location = useLocation();
@@ -12,7 +13,14 @@ export default function MobileNav() {
     base44.auth.me().then(u => setRole(u?.role || "user")).catch(() => {});
   }, []);
 
-  const items = getNavItemsForRole(role).slice(0, 4);
+  // Refrescar cuando cambia la simulación
+  useEffect(() => {
+    const h = () => base44.auth.me().then(u => setRole(u?.role || "user")).catch(() => {});
+    window.addEventListener("role-simulator-change", h);
+    return () => window.removeEventListener("role-simulator-change", h);
+  }, []);
+
+  const items = getNavItemsForRole(getEffectiveNavRole(role)).slice(0, 4);
 
   const handleTap = (e, item, isActive) => {
     e.preventDefault();

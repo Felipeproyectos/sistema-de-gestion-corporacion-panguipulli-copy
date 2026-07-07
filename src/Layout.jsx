@@ -6,6 +6,8 @@ import { Heart, Menu, X, LogOut } from "lucide-react";
 import { getNavItemsForRole } from "@/lib/navPermissions";
 import MobileNav from "@/components/MobileNav";
 import CompletarPerfil from "@/components/usuarios/CompletarPerfil";
+import RoleSimulator from "@/components/RoleSimulator";
+import { getEffectiveNavRole } from "@/lib/roleSimulator";
 import useDarkMode from "@/hooks/useDarkMode";
 
 export default function Layout({ children, currentPageName }) {
@@ -22,15 +24,25 @@ export default function Layout({ children, currentPageName }) {
     }).catch(() => {});
   }, []);
 
-  const visibleItems = getNavItemsForRole(user?.role);
+  const effectiveRole = getEffectiveNavRole(user?.role);
+  const visibleItems = getNavItemsForRole(effectiveRole);
   const navigate = useNavigate();
 
   // Redirigir al Monitor Corporativo a usuarios con rol exclusivo de visualización
+  // (solo aplica al rol real, no a la simulación del super_admin)
   useEffect(() => {
     if (user?.role === "monitor_corporativo" && currentPageName !== "MonitorCorporativo") {
       navigate("/MonitorCorporativo", { replace: true });
     }
   }, [user, currentPageName, navigate]);
+
+  // Escuchar cambios del simulador para refrescar la nav
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    const h = () => forceUpdate(n => n + 1);
+    window.addEventListener("role-simulator-change", h);
+    return () => window.removeEventListener("role-simulator-change", h);
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 flex" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -147,6 +159,7 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       <MobileNav />
+      <RoleSimulator />
       <CompletarPerfil user={user} onCompleto={() => window.location.reload()} />
     </div>);
 
