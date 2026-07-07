@@ -40,10 +40,9 @@ export default function RepuestosUtilizados({ ot, repuestos, onActualizado, user
           notas: `${nuevoItem.nombre} x${nuevoItem.cantidad} ($${nuevoItem.subtotal.toLocaleString("es-CL")})`,
         }],
       });
-      // Descontar stock
-      await base44.entities.Repuesto.update(repuestoSel.id, {
-        stock_actual: Math.max(0, (repuestoSel.stock_actual || 0) - Number(cantidad)),
-      });
+      // El stock real recién se descuenta cuando Jefe de Taller cierra la OT
+      // (ver OrdenTrabajoDetalle.jsx). Mientras tanto esto es solo el reporte
+      // de cantidades usadas, que el mecánico puede seguir corrigiendo.
       setRepSel("");
       setCantidad(1);
       setAgregando(false);
@@ -74,15 +73,8 @@ export default function RepuestosUtilizados({ ot, repuestos, onActualizado, user
           notas: `${item.nombre} x${item.cantidad}`,
         }],
       });
-      // Reponer stock
-      if (item.repuesto_id) {
-        const rep = repuestos.find(r => r.id === item.repuesto_id);
-        if (rep) {
-          await base44.entities.Repuesto.update(rep.id, {
-            stock_actual: (rep.stock_actual || 0) + Number(item.cantidad),
-          });
-        }
-      }
+      // No hay que reponer stock: como el descuento solo ocurre al cerrar la
+      // OT, quitar un ítem aquí (antes del cierre) nunca llegó a afectar stock.
       onActualizado();
     } catch (e) {
       console.error(e);
@@ -96,6 +88,7 @@ export default function RepuestosUtilizados({ ot, repuestos, onActualizado, user
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
           <Package className="w-4 h-4 text-violet-600" /> Repuestos Utilizados
+          {ot.estado === "completada" && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">OT cerrada · stock ya descontado</span>}
         </h3>
         {editable && (
           <button onClick={() => setAgregando(!agregando)}
