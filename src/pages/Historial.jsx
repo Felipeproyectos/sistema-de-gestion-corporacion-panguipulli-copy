@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { History, Search, Loader2, Plus, Edit2, Trash2, Filter } from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
+import { History, Search, Loader2, Plus, Edit2, Trash2, Filter, ShieldAlert } from "lucide-react";
+import { ROLES } from "@/lib/roles";
+import { format } from "date-fns";
 
 const ACCION_CONFIG = {
   crear:   { color: "bg-green-100 text-green-700 border-green-200",  icon: Plus,  label: "Creó" },
@@ -12,15 +12,19 @@ const ACCION_CONFIG = {
 
 export default function Historial() {
   const [registros, setRegistros] = useState([]);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filtroAccion, setFiltroAccion] = useState("todos");
 
   useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
     base44.entities.Historial.list("-created_date", 200)
       .then(data => { setRegistros(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
+
+  const esBaseDelSistema = user?.role === ROLES.SUPER_ADMIN;
 
   const filtrados = registros.filter(r => {
     const matchAccion = filtroAccion === "todos" || r.accion === filtroAccion;
@@ -34,6 +38,16 @@ export default function Historial() {
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen">
       <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+    </div>
+  );
+
+  if (!esBaseDelSistema) return (
+    <div className="flex items-center justify-center min-h-screen px-6">
+      <div className="text-center">
+        <ShieldAlert className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+        <p className="text-slate-500 font-medium">Acceso restringido</p>
+        <p className="text-slate-400 text-sm mt-1">El historial y la auditoría de eliminaciones son exclusivos de Base del Sistema.</p>
+      </div>
     </div>
   );
 
