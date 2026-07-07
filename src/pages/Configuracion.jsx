@@ -127,23 +127,23 @@ export default function Configuracion() {
 
   return (
     <div className="min-h-screen" style={{ background: "#e8f4fd" }}>
-      <div className="relative overflow-hidden px-6 lg:px-10 pt-10 pb-8" style={{ background: "linear-gradient(135deg, #0f2d6b 0%, #1565c0 40%, #29b6f6 100%)" }}>
+      <div className="relative overflow-hidden px-4 lg:px-10 pt-6 lg:pt-10 pb-6 lg:pb-8" style={{ background: "linear-gradient(135deg, #0f2d6b 0%, #1565c0 40%, #29b6f6 100%)" }}>
         <div className="relative max-w-4xl mx-auto flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.2)" }}>
-            <Settings className="w-6 h-6 text-white" />
+          <div className="w-11 h-11 lg:w-12 lg:h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(255,255,255,0.2)" }}>
+            <Settings className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
           </div>
-          <div>
-            <p className="text-cyan-200 text-xs font-semibold uppercase tracking-widest">Administración</p>
-            <h1 className="text-3xl font-bold text-white">Configuración</h1>
-            <p className="text-blue-100 text-sm mt-0.5">Gestión del sistema y usuarios</p>
+          <div className="min-w-0">
+            <p className="text-cyan-200 text-[10px] lg:text-xs font-semibold uppercase tracking-widest">Administración</p>
+            <h1 className="text-2xl lg:text-3xl font-bold text-white leading-tight">Configuración</h1>
+            <p className="text-blue-100 text-xs lg:text-sm mt-0.5">Gestión del sistema y usuarios</p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 lg:px-10 pt-6 pb-10 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 lg:px-10 pt-5 lg:pt-6 pb-10 space-y-5 lg:space-y-6">
 
         {/* Personalización */}
-        <div className="bg-white rounded-3xl shadow-lg p-8 space-y-6">
+        <div className="bg-white rounded-3xl shadow-lg p-5 lg:p-8 space-y-5 lg:space-y-6">
           <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
             <Settings className="w-5 h-5 text-blue-500" /> Personalización del Sistema
           </h2>
@@ -183,7 +183,7 @@ export default function Configuracion() {
         </div>
 
         {/* Gestión de usuarios */}
-        <div className="bg-white rounded-3xl shadow-lg p-8 space-y-5">
+        <div className="bg-white rounded-3xl shadow-lg p-5 lg:p-8 space-y-5">
           <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-500" /> Administración de Usuarios
           </h2>
@@ -280,7 +280,7 @@ export default function Configuracion() {
         </div>
 
         {/* Gestión de Sedes */}
-        <div className="bg-white rounded-3xl shadow-lg p-8 space-y-5">
+        <div className="bg-white rounded-3xl shadow-lg p-5 lg:p-8 space-y-5">
           <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
             <Building2 className="w-5 h-5 text-blue-500" /> Sedes y Subsedes
           </h2>
@@ -292,7 +292,7 @@ export default function Configuracion() {
         <BitacoraPublicaLink />
 
         {/* Zona peligrosa */}
-        <div className="bg-white rounded-3xl shadow-lg p-8 space-y-4 border border-red-100">
+        <div className="bg-white rounded-3xl shadow-lg p-5 lg:p-8 space-y-4 border border-red-100">
           <h2 className="text-base font-bold text-red-600 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5" /> Zona de Peligro
           </h2>
@@ -361,7 +361,7 @@ function BitacoraPublicaLink() {
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-lg p-8 space-y-5">
+    <div className="bg-white rounded-3xl shadow-lg p-5 lg:p-8 space-y-5">
       <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
         <Car className="w-5 h-5 text-blue-500" /> Formulario Público — Pautas de Inspección
       </h2>
